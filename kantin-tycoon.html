@@ -193,6 +193,7 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
 #boss .bar{background:#fff;border-bottom:1px solid #dadce0;padding:8px 20px;display:flex;gap:18px;font-size:13px;color:#444;position:sticky;top:0}
 #boss .bar b{color:#1a56a8}
 #boss .page{background:#fff;max-width:760px;margin:24px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.25);min-height:900px;line-height:1.7;font-size:15px}
+#boss .page:focus{outline:none}
 #boss h1{font-size:24px;margin:0 0 4px}
 #boss h3{margin:22px 0 4px}
 #boss .sub{color:#666;margin:0 0 18px;font-size:13px}
@@ -327,7 +328,7 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
 
 <div id="boss" hidden>
   <div class="bar"><b>Dokumen</b><span>Berkas</span><span>Edit</span><span>Tampilan</span><span>Sisipkan</span><span>Format</span></div>
-  <div class="page">
+  <div class="page" id="bossPage" contenteditable="true" spellcheck="false">
     <h1>Rangkuman Ekonomi: Bab 3</h1>
     <p class="sub">Permintaan, Penawaran, dan Harga Keseimbangan</p>
     <h3>A. Pengertian Permintaan</h3>
@@ -1595,6 +1596,13 @@ function toggleBoss() {
   bossOn = !bossOn;
   if (bossOn && document.activeElement) document.activeElement.blur();
   $('boss').hidden = !bossOn;
+  if (bossOn) {   // halaman bisa diketik; isTyping() menahan pintasan game. Kursor di akhir dokumen.
+    const pg = $('bossPage');
+    pg.focus({preventScroll: true});
+    const r = document.createRange(), sel = getSelection();
+    r.selectNodeContents(pg); r.collapse(false);
+    sel.removeAllRanges(); sel.addRange(r);
+  }
   document.title = bossOn ? 'Rangkuman Ekonomi Bab 3' : 'Kantin Tycoon';
 }
 $('bossBtn').addEventListener('click', toggleBoss);
