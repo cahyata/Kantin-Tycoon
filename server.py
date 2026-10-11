@@ -28,8 +28,12 @@ from urllib.parse import unquote, urlparse
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 GAME_FILE = os.path.join(BASE, 'kantin-tycoon.html')
-DB_FILE = os.path.join(BASE, 'kantin-tycoon.sqlite')
+DB_FILE = os.environ.get('KT_DB') or os.path.join(BASE, 'kantin-tycoon.sqlite')
 HOST = '127.0.0.1'
+# Pengaturan hosting publik (semua opsional; tanpa env server tetap seperti mode lokal).
+PUBLIC_HOSTS = {h.strip().lower() for h in os.environ.get('KT_HOSTS', '').split(',') if h.strip()}
+SECURE_COOKIES = os.environ.get('KT_SECURE') == '1'        # tambah flag Secure (wajib di HTTPS)
+TRUST_PROXY = os.environ.get('KT_TRUST_PROXY') == '1'      # percaya X-Real-IP / X-Forwarded-For dari proxy hosting
 MAX_BODY = 8 * 1024 * 1024
 ID_RE = re.compile(r'^[A-Za-z0-9_-]{1,40}$')
 USER_RE = re.compile(r'^[A-Za-z0-9_.-]{3,20}$')
@@ -171,6 +175,25 @@ def check_lock(key):
         raise ApiError(429, f'Terlalu banyak percobaan. Coba lagi dalam {int(rec[1] - time.time()) + 1} detik.')
 
 
+IP_HITS = {}   # (jenis, ip) -> [waktu kejadian]
+
+
+def ip_limit(kind, ip, limit, window):
+    """Batasi `limit` kejadian per `window` detik per IP. Mencatat kejadian ini; error 429 bila lewat."""
+    if not ip:
+        return
+    now = time.time()
+    hits = [t for t in IP_HITS.get((kind, ip), []) if t > now - window]
+    if len(hits) >= limit:
+        IP_HITS[(kind, ip)] = hits
+        raise ApiError(429, 'Terlalu banyak permintaan dari alamat ini. Coba lagi nanti.')
+    hits.append(now)
+    IP_HITS[(kind, ip)] = hits
+    if len(IP_HITS) > 5000:   # jaga memori
+        for k in [k for k, v in IP_HITS.items() if not v or v[-1] < now - 3600]:
+            IP_HITS.pop(k, None)
+
+
 def note_fail(key):
     rec = FAILS.setdefault(key, [0, 0])
     rec[0] += 1
@@ -183,7 +206,8 @@ def token_hash(token):
 
 
 def cookie_header(token, max_age):
-    return f'{COOKIE_NAME}={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={max_age}'
+    secure = '; Secure' if SECURE_COOKIES else ''
+    return f'{COOKIE_NAME}={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={max_age}{secure}'
 
 
 def start_session(con, user_id):
@@ -217,7 +241,7 @@ def own_slot(con, sid, uid, cols='*'):
 
 
 # ---------------------------------------------------------------------- API
-def handle_api(method, parts, body, token):
+def handle_api(method, parts, body, token, ip=None):
     """Mengembalikan (status, objek-json, header-Set-Cookie atau None). DB_LOCK sudah terkunci."""
     with connect() as con:
         # ---- publik
@@ -229,6 +253,7 @@ def handle_api(method, parts, body, token):
             return 200, {'user': {'id': u['id'], 'name': u['name']} if u else None}, None
 
         if parts == ['register'] and method == 'POST':
+            ip_limit('register', ip, 5, 3600)
             name, pw = need_credentials(body)
             ukey = name.lower()
             if con.execute('SELECT 1 FROM users WHERE ukey=?', (ukey,)).fetchone():
@@ -247,6 +272,7 @@ def handle_api(method, parts, body, token):
             name, pw = need_credentials(body)
             ukey = name.lower()
             check_lock(ukey)
+            ip_limit('login', ip, 30, 600)
             row = con.execute('SELECT id,name,pw FROM users WHERE ukey=?', (ukey,)).fetchone()
             ok = verify_password(pw, row['pw'] if row else _DUMMY_HASH)
             if not row or not ok:
@@ -371,77 +397,125 @@ def handle_api(method, parts, body, token):
     raise ApiError(404, 'endpoint tidak dikenal')
 
 
+def allowed_hosts(port=None):
+    if PUBLIC_HOSTS:
+        return PUBLIC_HOSTS
+    return {f'127.0.0.1:{port}', f'localhost:{port}'}
+
+
+def process(method, host, path, origin, kantin_hdr, read_body, cookie_raw, ip, port=None):
+    """Inti permintaan, dipakai server lokal dan WSGI. Mengembalikan (status, bytes, ctype, set_cookie)."""
+    def js(status, obj, cookie=None):
+        return status, dumps(obj).encode('utf-8'), 'application/json; charset=utf-8', cookie
+    try:
+        hosts = allowed_hosts(port)
+        if (host or '').lower() not in hosts:
+            raise ApiError(403, 'host ditolak')
+        path = urlparse(path).path
+        if not path.startswith('/api/'):
+            if method == 'GET' and path in ('/', '/index.html', '/kantin-tycoon.html'):
+                with open(GAME_FILE, 'rb') as f:
+                    return 200, f.read(), 'text/html; charset=utf-8', None
+            raise ApiError(404, 'tidak ditemukan')
+        if kantin_hdr != '1' or (origin and urlparse(origin).netloc.lower() not in hosts):
+            raise ApiError(403, 'permintaan ditolak')
+        parts = [unquote(p) for p in path[5:].strip('/').split('/') if p]
+        body = read_body() if method in ('PUT', 'POST') else None
+        token = None
+        if cookie_raw:
+            try:
+                m = SimpleCookie(cookie_raw).get(COOKIE_NAME)
+                token = m.value if m else None
+            except Exception:
+                token = None
+        with DB_LOCK:
+            status, obj, cookie = handle_api(method, parts, body, token, ip)
+        return js(status, obj, cookie)
+    except ApiError as e:
+        return js(e.status, {'error': e.message})
+    except Exception as e:  # jangan biarkan server mati karena satu permintaan
+        print('Galat:', repr(e), file=sys.stderr)
+        return js(500, {'error': 'galat server'})
+
+
+def parse_json(raw):
+    if not raw:
+        return None
+    try:
+        return json.loads(raw.decode('utf-8'))
+    except ValueError:
+        raise ApiError(400, 'JSON tidak valid')
+
+
+def client_ip(get_header, remote):
+    if TRUST_PROXY:
+        real = get_header('X-Real-IP')
+        if real:
+            return real.strip()
+        fwd = get_header('X-Forwarded-For')
+        if fwd:
+            return fwd.split(',')[-1].strip()   # entri terakhir = yang ditambahkan proxy kita
+    return remote
+
+
+SECURITY_HEADERS = [('Cache-Control', 'no-store'), ('X-Content-Type-Options', 'nosniff')]
+
+
+def application(environ, start_response):
+    """Titik masuk WSGI (PythonAnywhere dkk.)."""
+    def read_body():
+        length = int(environ.get('CONTENT_LENGTH') or 0)
+        if length > MAX_BODY:
+            raise ApiError(413, 'terlalu besar')
+        return parse_json(environ['wsgi.input'].read(length) if length else b'')
+    get = lambda name: environ.get('HTTP_' + name.upper().replace('-', '_'))
+    status, payload, ctype, cookie = process(
+        environ['REQUEST_METHOD'].replace('HEAD', 'GET'), get('Host'), environ.get('PATH_INFO', '/'),
+        get('Origin'), get('X-Kantin'), read_body, get('Cookie'),
+        client_ip(get, environ.get('REMOTE_ADDR')))
+    headers = [('Content-Type', ctype), ('Content-Length', str(len(payload)))] + SECURITY_HEADERS
+    if cookie:
+        headers.append(('Set-Cookie', cookie))
+    start_response(f'{status} {"OK" if status == 200 else "Error"}', headers)
+    return [b'' if environ['REQUEST_METHOD'] == 'HEAD' else payload]
+
+
+_db_ready = False
+
+
+def ensure_db():
+    global _db_ready
+    if not _db_ready:
+        init_db()
+        _db_ready = True
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = 'KantinTycoon/2.0'
 
     def log_message(self, fmt, *args):
         pass
 
-    # --- keamanan: hanya klien dari halaman sendiri yang boleh memakai API
-    def allowed_hosts(self):
-        port = self.server.server_port
-        return {f'127.0.0.1:{port}', f'localhost:{port}'}
-
-    def send_bytes(self, status, payload, ctype, cookie=None):
+    def route(self, method):
+        def read_body():
+            length = int(self.headers.get('Content-Length') or 0)
+            if length > MAX_BODY:
+                raise ApiError(413, 'terlalu besar')
+            return parse_json(self.rfile.read(length) if length else b'')
+        status, payload, ctype, cookie = process(
+            method, self.headers.get('Host', ''), self.path, self.headers.get('Origin'),
+            self.headers.get('X-Kantin'), read_body, self.headers.get('Cookie'),
+            client_ip(self.headers.get, self.client_address[0]), self.server.server_port)
         self.send_response(status)
         self.send_header('Content-Type', ctype)
         self.send_header('Content-Length', str(len(payload)))
-        self.send_header('Cache-Control', 'no-store')
-        self.send_header('X-Content-Type-Options', 'nosniff')
+        for k, v in SECURITY_HEADERS:
+            self.send_header(k, v)
         if cookie:
             self.send_header('Set-Cookie', cookie)
         self.end_headers()
         if self.command != 'HEAD':
             self.wfile.write(payload)
-
-    def send_json(self, status, obj, cookie=None):
-        self.send_bytes(status, dumps(obj).encode('utf-8'), 'application/json; charset=utf-8', cookie)
-
-    def read_body(self):
-        length = int(self.headers.get('Content-Length') or 0)
-        if length > MAX_BODY:
-            raise ApiError(413, 'terlalu besar')
-        if not length:
-            return None
-        try:
-            return json.loads(self.rfile.read(length).decode('utf-8'))
-        except ValueError:
-            raise ApiError(400, 'JSON tidak valid')
-
-    def session_token(self):
-        raw = self.headers.get('Cookie')
-        if not raw:
-            return None
-        try:
-            c = SimpleCookie(raw)
-        except Exception:
-            return None
-        m = c.get(COOKIE_NAME)
-        return m.value if m else None
-
-    def route(self, method):
-        try:
-            if self.headers.get('Host', '') not in self.allowed_hosts():
-                raise ApiError(403, 'host ditolak')
-            path = urlparse(self.path).path
-            if not path.startswith('/api/'):
-                if method == 'GET' and path in ('/', '/index.html', '/kantin-tycoon.html'):
-                    with open(GAME_FILE, 'rb') as f:
-                        return self.send_bytes(200, f.read(), 'text/html; charset=utf-8')
-                raise ApiError(404, 'tidak ditemukan')
-            origin = self.headers.get('Origin')
-            if self.headers.get('X-Kantin') != '1' or (origin and urlparse(origin).netloc not in self.allowed_hosts()):
-                raise ApiError(403, 'permintaan ditolak')
-            parts = [unquote(p) for p in path[5:].strip('/').split('/') if p]
-            body = self.read_body() if method in ('PUT', 'POST') else None
-            with DB_LOCK:
-                status, obj, cookie = handle_api(method, parts, body, self.session_token())
-            self.send_json(status, obj, cookie)
-        except ApiError as e:
-            self.send_json(e.status, {'error': e.message})
-        except Exception as e:  # jangan biarkan server mati karena satu permintaan
-            print('Galat:', repr(e), file=sys.stderr)
-            self.send_json(500, {'error': 'galat server'})
 
     def do_GET(self): self.route('GET')
     def do_PUT(self): self.route('PUT')
