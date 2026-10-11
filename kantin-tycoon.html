@@ -1,0 +1,1977 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kantin Tycoon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --font:"Helvetica Neue","Inter",Helvetica,Arial,sans-serif;
+  --bg:#f3f3f0; --card:#ffffff; --ink:#111111; --muted:#6c6c68; --line:#d9d9d4; --soft:#f0f0ec;
+  --accent:#e8480c; --accent-ink:#ffffff; --good:#1d7a3e; --bad:#c0261c; --gold:#ffd23f;
+  --scene:#e9e9e4; --counter:#161616;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#101010; --card:#191919; --ink:#f2f2ee; --muted:#9a9a94; --line:#2f2f2c; --soft:#222220;
+    --accent:#ff6a2b; --accent-ink:#111111; --good:#5fc47f; --bad:#ff6b5e;
+    --scene:#202020; --counter:#efefea;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.4 var(--font);min-height:100vh;
+  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+button{font:inherit;color:inherit;cursor:pointer}
+h2{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+h2 small{text-transform:none;letter-spacing:0;font-weight:400}
+small{color:var(--muted)}
+
+/* Header */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:19px;letter-spacing:-.03em;white-space:nowrap}
+.clock{display:flex;flex-direction:column;min-width:150px;line-height:1.2}
+.clock b{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.clock .bar{height:3px;background:var(--line);margin:4px 0}
+.clock .bar i{display:block;height:100%;width:0;background:var(--accent)}
+.clock small{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.speed{display:flex;gap:4px}
+.speed button,.qbtn{border:1px solid var(--line);background:transparent;border-radius:4px;padding:4px 10px;font-size:13px;font-weight:600}
+.speed button:hover,.qbtn:hover{border-color:var(--ink)}
+.speed button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pausebtn[aria-pressed="true"]{background:var(--gold);color:#111;border-color:var(--gold)}
+.money{margin-left:auto;text-align:right;line-height:1.1}
+.money b{font-size:30px;font-weight:700;letter-spacing:-.04em}
+.money small{display:block;margin-top:2px}
+
+.wrap{max-width:1000px;margin:0 auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
+
+/* Adegan */
+.scene canvas{width:100%;height:340px;display:block;border-radius:4px}
+.scene-foot{display:flex;gap:18px;align-items:center;margin-top:12px;flex-wrap:wrap}
+#serve{border:0;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;
+  letter-spacing:.02em;padding:15px 28px;user-select:none}
+#serve:active{transform:translateY(1px)}
+#serve:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.meters{flex:1;min-width:220px;display:grid;gap:7px;font-size:12px}
+.meter{display:flex;align-items:center;gap:10px}
+.meter .lbl{width:84px;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.meter .track{flex:1;height:4px;background:var(--line);overflow:hidden}
+.meter .track i{display:block;height:100%;width:0;transition:width .3s,background .3s}
+.meter b{min-width:70px;text-align:right;font-weight:600}
+
+/* Event & buff */
+#eventBox:empty{display:none}
+.event{border:1px solid var(--ink);border-left:6px solid var(--accent);background:var(--card);border-radius:4px;padding:14px 16px}
+.event h3{margin:0 0 2px;font-size:17px;letter-spacing:-.02em}
+.event p{margin:0 0 10px;color:var(--muted)}
+.event .ch{display:flex;gap:8px;flex-wrap:wrap}
+.event .ch button{border:1px solid var(--ink);background:transparent;border-radius:4px;padding:7px 13px;font-weight:600;font-size:13.5px}
+.event .ch button:hover{background:var(--ink);color:var(--bg)}
+.event .cd{height:3px;background:var(--line);margin-top:12px}
+.event .cd i{display:block;height:100%;background:var(--accent)}
+.buffs{display:flex;gap:6px;flex-wrap:wrap}
+.buffs:empty{display:none}
+.buffs span{background:var(--ink);color:var(--bg);font-weight:600;font-size:12px;border-radius:3px;padding:3px 10px}
+
+/* Tab */
+.tabs{display:flex;gap:22px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:8px 0 9px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.panel[hidden]{display:none}
+.panel{display:flex;flex-direction:column;gap:14px}
+
+/* Stasiun menu */
+.stations{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.st[hidden],.st-b[hidden],.locked[hidden]{display:none}
+.st-b{display:flex;flex-direction:column;gap:10px}
+.st-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.st-h b{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.st-h .em{font-size:22px}
+.chips{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.chip{background:var(--soft);border-radius:3px;padding:2px 8px;font-size:11.5px;font-weight:600}
+.chip.bad{background:var(--bad);color:#fff}
+.pr{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.pr input{width:100%;accent-color:var(--accent)}
+.pr output{font-weight:700;min-width:76px;text-align:right;font-size:14px;color:var(--ink);text-transform:none;letter-spacing:0}
+.hint{color:var(--muted);font-size:12.5px}
+.btns{display:grid;gap:6px}
+.mini,.buy{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:8px 11px;font-weight:600;font-size:13.5px;text-align:left}
+.mini:disabled,.buy:disabled{background:transparent;color:var(--muted);border-color:var(--line);cursor:not-allowed}
+.auto{font-size:13px;display:flex;gap:6px;align-items:center}
+.auto[hidden]{display:none}
+
+/* Peningkatan, naik kelas, laporan */
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.up{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:4px;padding:10px 12px}
+.up:disabled{opacity:.5;cursor:not-allowed}
+.up:not(:disabled){border-color:var(--ink)}
+.up:not(:disabled):hover{background:var(--soft)}
+.up .nm{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.up .ds{font-size:12.5px;color:var(--muted)}
+.up .pc{font-weight:700;font-size:13px;margin-top:3px;color:var(--accent)}
+.empty{color:var(--muted);font-size:13px;margin:0}
+.bigrow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.bigrow p{margin:0;flex:1;min-width:200px;color:var(--muted);font-size:13.5px}
+.bigrow .buy{min-width:200px}
+.stat{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;padding:5px 0;border-top:1px solid var(--line)}
+.stat:first-child{border-top:0}
+.stat b{color:var(--ink);font-weight:600}
+#chart{width:100%;height:150px;display:block}
+.ach{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:12px;font-weight:600;border-radius:3px;padding:3px 9px;background:var(--soft);color:var(--muted)}
+.badge.on{background:var(--ink);color:var(--bg)}
+.setrow{display:flex;gap:8px;flex-wrap:wrap}
+.setrow button{border:1px solid var(--ink);background:transparent;border-radius:4px;padding:8px 14px;font-weight:600;font-size:13.5px}
+.setrow button:hover{background:var(--ink);color:var(--bg)}
+.setrow .danger{color:var(--bad);border-color:var(--bad)}
+.setrow .danger:hover{background:var(--bad);color:#fff}
+.slot{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;margin-bottom:6px}
+.slot.active{border-color:var(--ink);border-left:6px solid var(--accent)}
+.slot .si{display:flex;flex-direction:column;min-width:0}
+.slot .acts{display:flex;gap:4px;flex-wrap:wrap}
+.slot .acts button{border:1px solid var(--line);background:transparent;border-radius:4px;padding:4px 10px;font-size:13px;font-weight:600}
+.slot .acts button:hover{border-color:var(--ink)}
+.slot .acts .danger{color:var(--bad);border-color:var(--bad)}
+
+.rowhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.rowhead h2{margin:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.tile{border:1px solid var(--line);border-radius:4px;padding:10px 12px;min-width:0}
+.tile small{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.tile b{display:block;font-size:19px;letter-spacing:-.02em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile span{display:block;font-size:12px;color:var(--muted)}
+.tblwrap{overflow-x:auto}
+#menuTbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+#menuTbl th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:2px solid var(--ink)}
+#menuTbl td{text-align:right;padding:9px 8px;border-top:1px solid var(--line);white-space:nowrap}
+#menuTbl th:first-child,#menuTbl td:first-child{text-align:left}
+#menuTbl tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+#menuTbl .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
+#menuTbl .neg{color:var(--bad)}
+.sb{display:inline-block;vertical-align:middle;width:46px;height:5px;background:var(--line);margin-left:6px}
+.sb i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+.legend .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+#chart2,#chart3{width:100%;height:170px;display:block}
+
+#auth{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+#auth[hidden]{display:none}
+.authbox{width:min(380px,100%);background:var(--card);border:1px solid var(--ink);border-top:6px solid var(--accent);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.authbrand{font-size:22px;font-weight:700;letter-spacing:-.03em}
+.authtabs{display:flex;gap:18px;border-bottom:1px solid var(--line)}
+.authtabs button{border:0;background:none;padding:6px 0 8px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.authtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.authbox label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.authbox label[hidden]{display:none}
+.authbox input,.acctform input{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:4px;padding:10px 12px;font:inherit;font-size:15px;text-transform:none;letter-spacing:0;font-weight:400}
+.authbox input:focus,.acctform input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.autherr{margin:0;min-height:1.3em;color:var(--bad);font-size:13px}
+.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;font-size:13px;padding:4px}
+.acctform{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px;max-width:340px}
+#acctBody details{margin-top:8px}
+#acctBody summary{cursor:pointer;font-weight:600;font-size:13.5px;padding:4px 0}
+#acctBody .setrow{margin-top:10px}
+
+footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:12.5px}
+
+.float{position:fixed;pointer-events:none;font-weight:700;color:var(--accent);z-index:20;animation:up .8s ease-out forwards}
+@keyframes up{to{transform:translateY(-55px);opacity:0}}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,440px)}
+#toast div{background:var(--ink);color:var(--bg);padding:9px 15px;border-radius:4px;font-size:13.5px;font-weight:500;text-align:center;animation:fade 4s forwards}
+@keyframes fade{0%{opacity:0;transform:translateY(8px)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+
+#boss{position:fixed;inset:0;z-index:100;background:#f1f3f4;color:#202124;overflow:auto;font-family:Arial,Helvetica,sans-serif}
+#boss[hidden]{display:none}
+#boss .bar{background:#fff;border-bottom:1px solid #dadce0;padding:8px 20px;display:flex;gap:18px;font-size:13px;color:#444;position:sticky;top:0}
+#boss .bar b{color:#1a56a8}
+#boss .page{background:#fff;max-width:760px;margin:24px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.25);min-height:900px;line-height:1.7;font-size:15px}
+#boss h1{font-size:24px;margin:0 0 4px}
+#boss h3{margin:22px 0 4px}
+#boss .sub{color:#666;margin:0 0 18px;font-size:13px}
+@media (max-width:640px){#boss .page{padding:28px 20px;margin:0}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">🍢 Kantin Tycoon</div>
+  <div class="clock">
+    <b><span id="clock">07:00</span> · <span id="dayLabel">Hari 1</span></b>
+    <div class="bar"><i id="dayBar"></i></div>
+    <small id="phase"></small>
+  </div>
+  <button type="button" id="pause" class="qbtn pausebtn" aria-pressed="false" title="Jeda / lanjut (tombol P)">⏸ Jeda</button>
+  <div class="speed" id="speed" title="Percepat waktu">
+    <button type="button" data-s="1" aria-pressed="true" title="Tombol 1">×1</button>
+    <button type="button" data-s="2" aria-pressed="false" title="Tombol 2">×2</button>
+    <button type="button" data-s="5" aria-pressed="false" title="Tombol 3">×5</button>
+    <button type="button" data-s="10" aria-pressed="false" title="Tombol 4">×10</button>
+  </div>
+  <div class="money"><b id="money">Rp 0</b><small id="rate"></small></div>
+</header>
+
+<div class="wrap">
+  <section class="card scene">
+    <canvas id="scene"></canvas>
+    <div class="scene-foot">
+      <button id="serve" type="button">🙋 Layani!</button>
+      <div class="meters">
+        <div class="meter"><span class="lbl">Kepuasan</span><span class="track"><i id="satBar"></i></span><b id="satTxt"></b></div>
+        <div class="meter"><span class="lbl">Pengunjung</span><span class="track"><i id="footBar" style="background:var(--accent)"></i></span><b id="footTxt"></b></div>
+        <div class="meter"><span class="lbl">Antrean</span><span class="track"><i id="queueBar" style="background:var(--gold)"></i></span><b id="queueTxt"></b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="buffs" id="buffs"></div>
+  <div id="eventBox"></div>
+
+  <nav class="tabs" id="tabs">
+    <button type="button" data-t="menu" aria-selected="true">🍽️ Menu &amp; Dapur</button>
+    <button type="button" data-t="up" aria-selected="false">🔧 Peningkatan</button>
+    <button type="button" data-t="grad" aria-selected="false">🎓 Naik Kelas</button>
+    <button type="button" data-t="rep" aria-selected="false">📊 Laporan</button>
+    <button type="button" data-t="set" aria-selected="false">⚙️ Pengaturan</button>
+  </nav>
+
+  <section class="panel" id="p-menu"><div class="stations" id="stations"></div></section>
+
+  <section class="panel" id="p-up" hidden>
+    <div class="card"><h2>🏪 Cabang</h2><div class="bigrow"><p id="branchTxt"></p><button type="button" class="buy" id="branchBtn"></button></div></div>
+    <div class="card"><h2>Peningkatan</h2><div class="list" id="ups"></div></div>
+  </section>
+
+  <section class="panel" id="p-grad" hidden>
+    <div class="card">
+      <h2>🎓 Naik Kelas</h2>
+      <div class="bigrow"><p id="gradTxt"></p><button type="button" class="buy" id="gradBtn"></button></div>
+    </div>
+    <div class="card">
+      <h2>Toko Reputasi <small id="repHave"></small></h2>
+      <div class="list" id="perks"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-rep" hidden>
+    <div class="card"><h2>Laba kotor harian <small>· omzet dikurangi HPP, 14 hari terakhir</small></h2><canvas id="chart"></canvas><div id="lastDay"></div></div>
+    <div class="card">
+      <div class="rowhead">
+        <h2>Penjualan per menu <small id="statLabel"></small></h2>
+        <div class="speed" id="statRange">
+          <button type="button" data-r="today" aria-pressed="true">Hari ini</button>
+          <button type="button" data-r="yesterday" aria-pressed="false">Kemarin</button>
+          <button type="button" data-r="week" aria-pressed="false">7 hari</button>
+          <button type="button" data-r="life" aria-pressed="false">Total</button>
+        </div>
+      </div>
+      <div class="tiles" id="statTiles"></div>
+      <div class="tblwrap"><table id="menuTbl"></table></div>
+      <p class="empty" style="margin-top:10px">HPP = modal bahan dari porsi yang terjual. "Kabur" = pelanggan yang pergi karena antrean penuh atau stok habis.</p>
+    </div>
+    <div class="card"><h2>Omzet per menu per hari <small>· 14 hari terakhir</small></h2><div class="legend" id="legend"></div><canvas id="chart2"></canvas></div>
+    <div class="card"><h2>Pelanggan per jam <small id="hrNote"></small></h2><canvas id="chart3"></canvas></div>
+    <div class="card"><h2>Statistik</h2><div id="stats"></div></div>
+    <div class="card"><h2>Pencapaian</h2><div class="ach" id="ach"></div></div>
+  </section>
+
+  <section class="panel" id="p-set" hidden>
+    <div class="card"><h2>👤 Akun</h2><div id="acctBody"></div></div>
+    <div class="card">
+      <h2>💾 Database Simpanan <small id="dbState"></small></h2>
+      <p class="empty" style="margin-bottom:10px">Tersimpan otomatis tiap 5 detik ke database browser (IndexedDB). Kamu bisa punya banyak slot, dan perpindahan perangkat lewat kode ekspor.</p>
+      <div id="slots"></div>
+      <div class="setrow" style="margin-top:8px">
+        <button type="button" id="slotNew">+ Slot baru</button>
+        <button type="button" id="imp">Impor kode</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🕑 Cadangan otomatis <small>· slot aktif, maks 10 terakhir</small></h2>
+      <div id="snaps"></div>
+    </div>
+    <div class="card">
+      <h2>Zona bahaya</h2>
+      <div class="setrow"><button type="button" id="reset" class="danger">Hapus semua data</button></div>
+    </div>
+  </section>
+</div>
+
+<footer>Spasi = layani · P = jeda · 1 2 3 4 = kecepatan ×1/×2/×5/×10 (+ / − = naik/turun) · Esc = layar darurat · Kantin tetap jalan 8 jam walau tab ditutup.
+  <button type="button" id="bossBtn" class="qbtn" style="margin-left:8px">👀 Layar darurat</button></footer>
+
+<div id="toast"></div>
+
+<div id="auth" hidden>
+  <form class="authbox" id="authForm">
+    <div class="authbrand">🍢 Kantin Tycoon</div>
+    <div class="authtabs" id="authTabs">
+      <button type="button" data-m="login" aria-selected="true">Masuk</button>
+      <button type="button" data-m="register" aria-selected="false">Daftar</button>
+    </div>
+    <label>Nama pengguna<input id="authUser" name="username" autocomplete="username" maxlength="20" spellcheck="false" required></label>
+    <label>Kata sandi<input id="authPass" name="password" type="password" autocomplete="current-password" maxlength="128" required></label>
+    <label id="authPass2Row" hidden>Ulangi kata sandi<input id="authPass2" type="password" autocomplete="new-password" maxlength="128"></label>
+    <p class="autherr" id="authErr" role="alert"></p>
+    <button type="submit" id="authSubmit" class="buy">Masuk</button>
+    <button type="button" id="authGuest" class="linkbtn">Main tanpa akun (tersimpan hanya di browser ini)</button>
+  </form>
+</div>
+
+<div id="boss" hidden>
+  <div class="bar"><b>Dokumen</b><span>Berkas</span><span>Edit</span><span>Tampilan</span><span>Sisipkan</span><span>Format</span></div>
+  <div class="page">
+    <h1>Rangkuman Ekonomi: Bab 3</h1>
+    <p class="sub">Permintaan, Penawaran, dan Harga Keseimbangan</p>
+    <h3>A. Pengertian Permintaan</h3>
+    <p>Permintaan adalah jumlah barang atau jasa yang bersedia dibeli konsumen pada berbagai tingkat harga dalam waktu tertentu. Hukum permintaan menyatakan bahwa apabila harga suatu barang naik, jumlah yang diminta akan turun, dengan anggapan faktor lain tetap (ceteris paribus).</p>
+    <h3>B. Faktor yang Memengaruhi Permintaan</h3>
+    <p>1. Harga barang itu sendiri<br>2. Harga barang lain (barang substitusi dan komplementer)<br>3. Pendapatan konsumen<br>4. Selera dan kebiasaan<br>5. Jumlah penduduk<br>6. Perkiraan harga di masa depan</p>
+    <h3>C. Pengertian Penawaran</h3>
+    <p>Penawaran adalah jumlah barang atau jasa yang bersedia dijual produsen pada berbagai tingkat harga. Hukum penawaran menyatakan bahwa semakin tinggi harga, semakin banyak jumlah barang yang ditawarkan.</p>
+    <h3>D. Harga Keseimbangan</h3>
+    <p>Harga keseimbangan (ekuilibrium) terjadi ketika jumlah barang yang diminta sama dengan jumlah barang yang ditawarkan. Titik pertemuan kurva permintaan dan kurva penawaran disebut titik keseimbangan pasar.</p>
+    <h3>E. Catatan</h3>
+    <p>Contoh soal: jika pada harga Rp 4.000 jumlah permintaan 120 unit dan jumlah penawaran 80 unit, maka terjadi kelebihan permintaan sebanyak 40 unit sehingga harga cenderung naik menuju titik keseimbangan.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+(() => {
+
+/* ================= Konstanta & data ================= */
+const SAVE_KEY = 'kantin-tycoon-v1';
+const DAY = 180;            // detik waktu game per hari sekolah
+const OPEN = 7, HOURS = 8;  // 07:00 - 15:00
+const FOOT0 = 1.5;          // pengunjung/detik saat jam paling ramai (awal)
+const OFFLINE_CAP = 8 * 3600;
+
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+const UNITS = [[1e15,'Q'],[1e12,'T'],[1e9,'M'],[1e6,'jt'],[1e3,'rb']];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return (n < 100 && n % 1 !== 0) ? n.toFixed(1).replace('.', ',') : String(Math.floor(n));
+  for (const [v, s] of UNITS) {
+    if (n >= v) {
+      const x = n / v;
+      let str = x.toFixed(x >= 100 ? 0 : x >= 10 ? 1 : 2).replace('.', ',');
+      if (str.includes(',')) str = str.replace(/,?0+$/, '');
+      return str + ' ' + s;
+    }
+  }
+}
+const rp = n => (n < 0 ? '-Rp ' : 'Rp ') + fmt(Math.floor(Math.abs(n)));
+function fmtDur(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+  return h ? `${h}j ${m}m` : `${m}m`;
+}
+
+const ITEMS = [
+  {id:'gorengan', em:'🍤', name:'Gorengan',    ref:1000,  cost:.35, pop:1.0, unlock:0,   staff:1e4},
+  {id:'esteh',    em:'🧋', name:'Es Teh',      ref:2500,  cost:.30, pop:.9,  unlock:2.5e4, staff:1.2e4},
+  {id:'nasgor',   em:'🍛', name:'Nasi Goreng', ref:12000, cost:.45, pop:.7,  unlock:1.5e5, staff:7e4},
+  {id:'mie',      em:'🍜', name:'Mie Ayam',    ref:15000, cost:.45, pop:.7,  unlock:8e5,   staff:3.5e5},
+  {id:'bakso',    em:'🍲', name:'Bakso',       ref:20000, cost:.45, pop:.6,  unlock:4e6,   staff:1.8e6},
+  {id:'boba',     em:'🥤', name:'Boba',        ref:30000, cost:.40, pop:.5,  unlock:2e7,   staff:9e6},
+];
+
+// [mulai, selesai, tingkat keramaian, label]
+const PHASES = [
+  [7,    7.5,  .55, 'Anak-anak berdatangan'],
+  [7.5,  9.25, .12, 'Jam pelajaran'],
+  [9.25, 10,   1,   '🔔 Istirahat 1'],
+  [10,   12,   .12, 'Jam pelajaran'],
+  [12,   12.75,1,   '🔔 Istirahat 2'],
+  [12.75,14.5, .15, 'Jam pelajaran'],
+  [14.5, 15,   .7,  'Pulang sekolah'],
+];
+const phaseAt = h => PHASES.find(p => h >= p[0] && h < p[1]) || PHASES[PHASES.length - 1];
+
+const UPS = [
+  {id:'auto',   name:'Supplier Langganan', ds:'Membuka tombol Auto isi stok',          cost:1.5e4, fx:m => { m.auto = true; }},
+  {id:'click1', name:'Celemek Sakti',      ds:'Tiap klik melayani +1 pelanggan',        cost:6e4,   fx:m => { m.click += 1; }},
+  {id:'cold',   name:'Kulkas Besar',       ds:'Kapasitas stok ×2',                      cost:1.2e5, fx:m => { m.stock *= 2; }},
+  {id:'fan',    name:'Kipas Angin',        ds:'Kepuasan dasar +5',                      cost:2e5,   fx:m => { m.sat += 5; }},
+  {id:'qris',   name:'Kasir QRIS',         ds:'Kecepatan layanan ×1,25',                cost:3e5,   fx:m => { m.cap *= 1.25; }},
+  {id:'click2', name:'Tangan Seribu',      ds:'Tiap klik melayani +2 pelanggan lagi',   cost:4e5,   fx:m => { m.click += 2; }},
+  {id:'menu',   name:'Papan Menu Kece',    ds:'Pengunjung ×1,2',                        cost:5e5,   fx:m => { m.foot *= 1.2; }},
+  {id:'clean',  name:'Dapur Higienis',     ds:'Kepuasan +6 dan kebal sidak guru',       cost:1.2e6, fx:m => { m.sat += 6; m.clean = true; }},
+  {id:'promo',  name:'Spanduk Promo',      ds:'Pengunjung ×1,25',                       cost:2e6,   fx:m => { m.foot *= 1.25; }},
+  {id:'click3', name:'Jurus Kilat',        ds:'Tiap klik melayani +3 pelanggan lagi',   cost:3e6,   fx:m => { m.click += 3; }},
+  {id:'wh',     name:'Gudang',             ds:'Kapasitas stok ×2 lagi',                 cost:4e6,   fx:m => { m.stock *= 2; }},
+  {id:'member', name:'Kartu Member',       ds:'Pengunjung ×1,3',                        cost:8e6,   fx:m => { m.foot *= 1.3; }},
+  {id:'pos',    name:'Kasir Otomatis',     ds:'Kecepatan layanan ×1,4',                 cost:1.5e7, fx:m => { m.cap *= 1.4; }},
+  {id:'radio',  name:'Iklan Radio Sekolah',ds:'Pengunjung ×1,5',                        cost:4e7,   fx:m => { m.foot *= 1.5; }},
+  {id:'central',name:'Dapur Pusat',        ds:'Kecepatan layanan ×1,5',                 cost:1e8,   fx:m => { m.cap *= 1.5; }},
+  {id:'franch', name:'Waralaba Nasional',  ds:'Pengunjung ×2',                          cost:5e8,   fx:m => { m.foot *= 2; }},
+];
+
+const PERKS = [
+  {id:'foot',  name:'Alumni Setia',        ds:'Pengunjung +10% per level',               max:30, cost:l => l + 1},
+  {id:'cap',   name:'Resep Turun-Temurun', ds:'Kecepatan layanan +10% per level',        max:30, cost:l => l + 1},
+  {id:'cash',  name:'Modal Warisan',       ds:'Mulai dengan Rp 100 rb × level',          max:10, cost:l => l + 1},
+  {id:'auto',  name:'Langganan Abadi',     ds:'Auto isi stok terbuka sejak awal',        max:1,  cost:() => 2},
+  {id:'price', name:'Pelanggan Royal',     ds:'Pelanggan kurang sensitif soal harga',    max:5,  cost:l => l + 2},
+];
+
+const ACH = [
+  {id:'a1', name:'Pembeli Pertama',          test:() => S.life.served >= 1},
+  {id:'a2', name:'1.000 Pelanggan',          test:() => S.life.served >= 1000},
+  {id:'a3', name:'Omzet Rp 1 jt',            test:() => S.life.rev >= 1e6},
+  {id:'a4', name:'Omzet Rp 100 jt',          test:() => S.life.rev >= 1e8},
+  {id:'a5', name:'Omzet Rp 10 M',            test:() => S.life.rev >= 1e10},
+  {id:'a6', name:'Menu Lengkap',             test:() => ITEMS.every(it => S.items[it.id].on)},
+  {id:'a7', name:'Pelanggan Puas (95+)',     test:() => S.sat >= 95},
+  {id:'a8', name:'Buka Cabang',              test:() => S.branches >= 1},
+  {id:'a9', name:'Juru Katering',            test:() => S.life.cater >= 1},
+  {id:'a10',name:'Seminggu Bertahan',        test:() => S.life.days >= 7},
+  {id:'a11',name:'Naik Kelas',               test:() => S.prestiges >= 1},
+];
+
+/* ================= State ================= */
+let S, M;
+let ev = null;               // event aktif (tidak disimpan)
+let speed = 1, dirty = true, lastHour = -1, rateEma = 0, chartDirty = true;
+const visAcc = {}, visLost = {};   // akumulasi pelanggan dilayani / kabur untuk animasi
+
+const perk = id => (S.perks[id] || 0);
+
+// Catatan harian: ringkasan + rincian per menu (items) + per jam kerja (hrS dilayani, hrL kabur)
+const blankItem = () => ({sold:0, rev:0, cogs:0, lost:0});
+const blankDay = () => ({rev:0, bahan:0, served:0, lost:0, arr:0, items:{},
+                         hrS:new Array(HOURS).fill(0), hrL:new Array(HOURS).fill(0)});
+const hourIdx = () => clamp(Math.floor(HOURS * S.clock / DAY), 0, HOURS - 1);
+function addStat(id, sold, rev, cogs, lost) {
+  for (const m of [S.d.items, S.mstat]) {
+    const r = m[id] || (m[id] = blankItem());
+    r.sold += sold; r.rev += rev; r.cogs += cogs; r.lost += lost;
+  }
+}
+
+function resetRun(s) {
+  s.money = 5000 + (s.perks.cash || 0) * 1e5;
+  s.runRev = 0; s.branches = 0; s.ups = {}; s.buffs = [];
+  s.day = 1; s.clock = 0; s.sat = 70; s.lostEma = 0; s.evCool = 1;
+  s.d = blankDay();
+  s.reports = [];
+  s.items = {};
+  for (const it of ITEMS) {
+    s.items[it.id] = {on: it.unlock === 0, price: it.ref, stock: it.unlock === 0 ? 80 : 0,
+                      staff: 1, lvl: 0, q: 0, auto: !!(s.perks.auto)};
+  }
+}
+function freshState() {
+  const s = {perks:{}, repTotal:0, rep:0, prestiges:0, ach:{}, mstat:{},
+             life:{rev:0, served:0, lost:0, cater:0, days:0}, speed:1, paused:false, lastSave:Date.now()};
+  resetRun(s);
+  return s;
+}
+// Lengkapi data simpanan lama/impor dengan field yang mungkin belum ada
+function normalize(p) {
+  const base = freshState();
+  const s = Object.assign({}, base, p);
+  s.life = Object.assign({}, base.life, p.life);
+  s.d = Object.assign({}, base.d, p.d);
+  s.perks = p.perks || {}; s.ups = p.ups || {}; s.buffs = p.buffs || [];
+  s.ach = p.ach || {}; s.reports = p.reports || []; s.mstat = p.mstat || {};
+  s.items = {};
+  for (const it of ITEMS) s.items[it.id] = Object.assign({}, base.items[it.id], (p.items || {})[it.id]);
+  return s;
+}
+function applyState(s) {
+  S = s;
+  speed = [1, 2, 5, 10].includes(S.speed) ? S.speed : 1;
+  dirty = true;
+}
+const mergeSave = p => applyState(normalize(p));
+
+/* ================= Database simpanan (IndexedDB) ================= */
+const DB_NAME = 'kantin-tycoon-db', DB_VER = 1, MAX_SNAPS = 10, SNAP_EVERY = 5 * 60 * 1000;
+const MIRROR_KEY = 'kantin-tycoon-mirror';
+const TAB = Math.random().toString(36).slice(2);
+let db = null, dbOk = false, dbFailed = false;
+let activeId = null, slotsCache = [];
+let switching = false, writing = false, lastSnap = Date.now(), warnedTab = false;
+
+const idbReq = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const tx = (stores, mode) => db.transaction(stores, mode || 'readonly');
+const dbGet = (store, key) => idbReq(tx(store).objectStore(store).get(key));
+const dbAll = store => idbReq(tx(store).objectStore(store).getAll());
+function txDone(t) {
+  return new Promise((res, rej) => { t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
+}
+async function dbPut(store, val, key) {
+  const t = tx(store, 'readwrite'), os = t.objectStore(store);
+  if (key === undefined) os.put(val); else os.put(val, key);   // klon data terjadi sinkron di sini
+  await txDone(t);
+}
+async function dbDel(store, key) {
+  const t = tx(store, 'readwrite');
+  t.objectStore(store).delete(key);
+  await txDone(t);
+}
+async function dbClear(store) {
+  const t = tx(store, 'readwrite');
+  t.objectStore(store).clear();
+  await txDone(t);
+}
+function openDb() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error('IndexedDB tidak ada'));
+    let o;
+    try { o = indexedDB.open(DB_NAME, DB_VER); } catch (e) { return rej(e); }
+    o.onupgradeneeded = () => {
+      const d = o.result;
+      d.createObjectStore('slots', {keyPath:'id'});
+      d.createObjectStore('snapshots', {keyPath:'id', autoIncrement:true}).createIndex('slot', 'slotId');
+      d.createObjectStore('meta');
+    };
+    o.onsuccess = () => res(o.result);
+    o.onerror = () => rej(o.error);
+    o.onblocked = () => rej(new Error('Database terblokir'));
+  });
+}
+function readLocal(key) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+}
+const newId = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const summary = s => ({day:s.day, money:Math.floor(s.money), rev:Math.floor(s.life.rev),
+                       prestiges:s.prestiges, rep:s.repTotal});
+
+/* --- Dua backend dengan antarmuka sama. Setiap operasi menyerialisasi datanya
+       secara sinkron saat dipanggil, jadi aman walau game terus berjalan. */
+const metaOf = r => ({id:r.id, name:r.name, created:r.created, updated:r.updated, summary:r.summary});
+const idbSnapKeys = sid => idbReq(tx('snapshots').objectStore('snapshots').index('slot').getAllKeys(IDBKeyRange.only(sid)));
+
+// 1) IndexedDB: di dalam browser, jalan walau game dibuka langsung dari file
+const idbStore = {
+  label: 'IndexedDB di browser',
+  async init() { db = await openDb(); },
+  async listSlots() { return (await dbAll('slots')).map(metaOf); },
+  getSlot: id => dbGet('slots', id),
+  putSlot: rec => dbPut('slots', rec),
+  async deleteSlot(id) {
+    for (const k of await idbSnapKeys(id)) await dbDel('snapshots', k);
+    await dbDel('slots', id);
+  },
+  async addSnapshot(rec, max) {
+    await dbPut('snapshots', rec);
+    const keys = await idbSnapKeys(rec.slotId);                       // kunci menaik = terlama dulu
+    for (let i = 0; i < keys.length - max; i++) await dbDel('snapshots', keys[i]);
+  },
+  async listSnapshots(sid) {
+    const all = await idbReq(tx('snapshots').objectStore('snapshots').index('slot').getAll(IDBKeyRange.only(sid)));
+    return all.map(r => ({id:r.id, time:r.time, reason:r.reason, summary:r.summary}));
+  },
+  getSnapshot: key => dbGet('snapshots', key),
+  getActive: () => dbGet('meta', 'active'),
+  setActive: id => dbPut('meta', id, 'active'),
+  async clearAll() { await dbClear('slots'); await dbClear('snapshots'); },
+};
+
+// 2) File SQLite lewat server.py: simpanan nyata di disk (kantin-tycoon.sqlite)
+async function api(method, path, body) {
+  const opt = {method, headers:{'X-Kantin':'1'}};
+  if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const r = await fetch('/api' + path, opt);
+  if (r.status === 404) return null;
+  if (!r.ok) {
+    const j = await r.json().catch(() => ({}));
+    const err = new Error(j.error || 'Server ' + r.status);
+    err.status = r.status;
+    throw err;
+  }
+  return r.json();
+}
+const httpStore = {
+  label: 'File SQLite',
+  async init() {
+    const r = await api('GET', '/ping');
+    if (!r || !r.ok) throw new Error('Server simpanan tidak ada');
+    this.label = 'File SQLite: ' + r.file;
+  },
+  listSlots: () => api('GET', '/slots'),
+  getSlot: id => api('GET', '/slots/' + encodeURIComponent(id)),
+  putSlot: rec => api('PUT', '/slots/' + encodeURIComponent(rec.id), rec),
+  deleteSlot: id => api('DELETE', '/slots/' + encodeURIComponent(id)),
+  addSnapshot: (rec, max) => api('POST', '/snapshots', Object.assign({max}, rec)),
+  listSnapshots: sid => api('GET', '/slots/' + encodeURIComponent(sid) + '/snapshots'),
+  getSnapshot: key => api('GET', '/snapshots/' + encodeURIComponent(key)),
+  getActive: async () => { const r = await api('GET', '/meta/active'); return r && r.value; },
+  setActive: id => api('PUT', '/meta/active', {value:id}),
+  clearAll: () => api('POST', '/reset'),
+};
+let store = idbStore;
+
+async function refreshSlots() {
+  slotsCache = (await store.listSlots()).sort((a, b) => b.updated - a.updated);
+}
+async function createSlot(name, state) {
+  const id = newId(), now = Date.now();
+  await store.putSlot({id, name, created:now, updated:now, summary:summary(state), data:state});
+  await refreshSlots();
+  return id;
+}
+async function writeSlot() {
+  const meta = slotsCache.find(x => x.id === activeId);
+  if (!meta) return;
+  const rec = {id:meta.id, name:meta.name, created:meta.created, updated:Date.now(), summary:summary(S), data:S};
+  const p = store.putSlot(rec);
+  meta.updated = rec.updated; meta.summary = rec.summary;
+  await p;
+}
+async function snapshot(reason) {
+  if (!dbOk || !activeId) return;
+  const sid = activeId, data = JSON.parse(JSON.stringify(S));
+  await store.addSnapshot({slotId:sid, time:Date.now(), reason, summary:summary(data), data}, MAX_SNAPS);
+}
+function dbFail(e) {
+  console.error('Gagal menulis database', e);
+  if (!dbFailed) {
+    dbFailed = true;
+    toast(e && e.status === 401 ? '⚠️ Sesi login berakhir. Muat ulang halaman untuk masuk lagi.'
+                                : '⚠️ Gagal menulis ke database simpanan, coba Ekspor kode');
+  }
+}
+
+// Salinan darurat sinkron di localStorage: jaring pengaman bila database gagal/rusak/terhapus
+const uidKey = () => account ? 'u' + account.id : 'guest';
+function writeMirror() {
+  try { localStorage.setItem(MIRROR_KEY, JSON.stringify({id:activeId, uid:uidKey(), data:S})); } catch (e) {}
+}
+const mirrorMine = m => !!(m && m.data && (m.uid === undefined || m.uid === uidKey()));
+
+function save() {
+  if (switching) return;
+  S.lastSave = Date.now(); S.speed = speed;
+  writeMirror();  // cadangan sinkron di localStorage
+  if (!dbOk || !activeId) return;
+  try { if (bc) bc.postMessage({id:activeId, tab:TAB}); } catch (e) {}
+  if (!writing) {
+    writing = true;
+    writeSlot().then(() => { dbFailed = false; }).catch(dbFail).finally(() => { writing = false; });
+  }
+  if (Date.now() - lastSnap > SNAP_EVERY) { lastSnap = Date.now(); snapshot('otomatis').catch(() => {}); }
+}
+async function saveNow() {
+  S.lastSave = Date.now(); S.speed = speed;
+  writeMirror();
+  if (dbOk && activeId) await writeSlot();
+}
+
+// Peringatan jika slot yang sama dibuka di dua tab (saling menimpa)
+let bc = null;
+try {
+  bc = new BroadcastChannel('kantin-tycoon');
+  bc.onmessage = e => {
+    if (e.data && e.data.id === activeId && e.data.tab !== TAB && !warnedTab) {
+      warnedTab = true;
+      toast('⚠️ Slot ini juga terbuka di tab lain, simpanannya bisa saling menimpa!');
+    }
+  };
+} catch (e) { bc = null; }
+
+function afterLoad() {
+  M = mods(); dirty = false;
+  ACH.forEach(a => {
+    if (S.ach[a.id]) paintAch(a);
+    else { achBadges[a.id].className = 'badge'; achBadges[a.id].textContent = '???'; }
+  });
+  upKey = ''; ev = null; renderEvent(); chartDirty = true; syncSpeedUi();
+  lastHour = -1; rateEma = 0; lastSnap = Date.now();
+  ITEMS.forEach(it => { sprites[it.id].length = 0; });
+  leavers.length = 0; coins.length = 0; walkers.length = 0;
+  writeMirror();
+}
+async function switchSlot(id, opts) {
+  if (!dbOk || id === activeId || switching) return;
+  switching = true;
+  try {
+    if (!(opts && opts.skipSave)) await saveNow();
+    const rec = await store.getSlot(id);
+    if (!rec) throw new Error('Slot hilang');
+    activeId = id; warnedTab = false;
+    await store.setActive(id);
+    applyState(normalize(rec.data));
+    afterLoad();
+  } finally { switching = false; }
+}
+async function createAndSwitch(name, state) {
+  if (!dbOk) return;
+  switching = true;
+  try {
+    await saveNow();
+    const st = normalize(state || {});
+    const id = await createSlot(name, st);
+    activeId = id; warnedTab = false;
+    await store.setActive(id);
+    applyState(st);
+    afterLoad();
+  } finally { switching = false; }
+}
+async function deleteSlot(id) {
+  if (slotsCache.length <= 1) { toast('Minimal harus ada satu slot'); return; }
+  if (id === activeId) await switchSlot(slotsCache.find(x => x.id !== id).id, {skipSave:true});
+  await store.deleteSlot(id);
+  await refreshSlots();
+}
+async function renameSlot(id, name) {
+  const rec = await store.getSlot(id);
+  if (!rec) return;
+  rec.name = name;
+  await store.putSlot(rec);
+  await refreshSlots();
+}
+async function restoreSnapshot(key) {
+  const rec = await store.getSnapshot(key);
+  if (!rec) return;
+  await snapshot('sebelum dipulihkan');
+  applyState(normalize(rec.data));
+  afterLoad();
+  await saveNow();
+}
+const exportCode = state => btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+
+/* --- UI database */
+function fmtAgo(t) {
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return 'baru saja';
+  if (s < 3600) return Math.floor(s / 60) + ' mnt lalu';
+  if (s < 86400) return Math.floor(s / 3600) + ' jam lalu';
+  return Math.floor(s / 86400) + ' hari lalu';
+}
+function mkBtn(label, act, extra, cls) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = label; b.dataset.act = act;
+  Object.assign(b.dataset, extra || {});
+  if (cls) b.className = cls;
+  return b;
+}
+async function renderSlots() {
+  const host = $('slots'), snaps = $('snaps');
+  $('dbState').textContent = dbOk ? '· ' + store.label : '· tidak tersedia';
+  if (!dbOk) {
+    host.innerHTML = '<p class="empty">Browser ini memblokir database (mode privat, atau halaman lokal yang dibatasi). Progres hanya tersimpan sementara. Pakai Ekspor kode di bawah sebagai cadangan manual.</p>';
+    host.appendChild(mkBtn('Ekspor kode slot ini', 'export', {id:''}));
+    snaps.innerHTML = '';
+    return;
+  }
+  try {
+    await refreshSlots();
+    host.innerHTML = '';
+    slotsCache.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'slot' + (m.id === activeId ? ' active' : '');
+      row.innerHTML = '<div class="si"><b></b><small></small></div><div class="acts"></div>';
+      const sm = m.summary || {};
+      row.querySelector('b').textContent = m.name + (m.id === activeId ? ' ● aktif' : '');
+      row.querySelector('small').textContent =
+        `Hari ${sm.day} · ${rp(sm.money || 0)} · omzet ${rp(sm.rev || 0)} · Naik Kelas ${sm.prestiges || 0}× · ${fmtAgo(m.updated)}`;
+      const acts = row.querySelector('.acts'), d = {id:m.id};
+      acts.appendChild(m.id === activeId ? mkBtn('Simpan', 'save', d) : mkBtn('Muat', 'load', d));
+      acts.appendChild(mkBtn('Ganti nama', 'rename', d));
+      acts.appendChild(mkBtn('Ekspor', 'export', d));
+      acts.appendChild(mkBtn('Hapus', 'delete', d, 'danger'));
+      host.appendChild(row);
+    });
+    const list = (await store.listSnapshots(activeId)).reverse();
+    snaps.innerHTML = list.length ? '' : '<p class="empty">Belum ada cadangan. Cadangan dibuat tiap 5 menit, juga sebelum Naik Kelas atau pemulihan.</p>';
+    list.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'slot';
+      row.innerHTML = '<div class="si"><b></b><small></small></div><div class="acts"></div>';
+      row.querySelector('b').textContent = new Date(r.time).toLocaleString('id-ID') + ' · ' + r.reason;
+      row.querySelector('small').textContent = `Hari ${r.summary.day} · ${rp(r.summary.money)} · omzet ${rp(r.summary.rev)}`;
+      row.querySelector('.acts').appendChild(mkBtn('Pulihkan', 'restore', {key:String(r.id)}));
+      snaps.appendChild(row);
+    });
+  } catch (e) { dbFail(e); }
+}
+
+/* ================= Mekanik ================= */
+function mods() {
+  const m = {foot:1, cap:1, stock:1, sat:0, click:0, auto:false, clean:false};
+  for (const u of UPS) if (S.ups[u.id]) u.fx(m);
+  m.foot *= 1 + 0.1 * perk('foot') + 0.05 * S.repTotal;
+  m.cap *= 1 + 0.1 * perk('cap');
+  if (perk('auto')) m.auto = true;
+  return m;
+}
+const branchMult = () => 1 + 0.6 * S.branches;
+const maxStock = () => Math.floor(80 * M.stock * branchMult());
+const buff = key => S.buffs.reduce((a, b) => a * (b[key] || 1), 1);
+const unitCost = it => it.ref * it.cost * buff('cost');
+function demand(p) {
+  const k = 2.2 + 0.1 * perk('price');
+  return clamp((k - p) / 1.2, 0, 1.6);
+}
+const capacity = (it, s) => s.staff * 0.5 * Math.pow(1.3, s.lvl) * M.cap * branchMult();
+const staffCost = (it, s) => it.staff * Math.pow(1.6, s.staff - 1);
+const lvlCost = (it, s) => it.staff * 3 * Math.pow(2.2, s.lvl);
+const branchCost = () => 3e6 * Math.pow(3.5, S.branches);
+const prestigeGain = () => Math.floor(Math.cbrt(S.runRev / 2e8));
+
+function addRev(x) {
+  S.money += x; S.d.rev += x; S.runRev += x; S.life.rev += x;
+}
+const bumpSat = x => { S.sat = clamp(S.sat + x, 5, 100); };
+
+function restock(it) {
+  const s = S.items[it.id], uc = unitCost(it);
+  const n = Math.min(Math.floor(maxStock() - s.stock), Math.floor(S.money / uc));
+  if (n < 1) return 0;
+  const c = n * uc;
+  S.money -= c; S.d.bahan += c; s.stock += n;
+  return c;
+}
+
+function step(dt, quiet) {
+  if (dirty) { M = mods(); dirty = false; }
+  const hour = OPEN + HOURS * S.clock / DAY;
+  const ph = phaseAt(hour);
+  const on = ITEMS.filter(it => S.items[it.id].on);
+  const sumPop = on.reduce((a, it) => a + it.pop, 0);
+  const bm = branchMult();
+  const lam = FOOT0 * ph[2] * M.foot * bm * (0.5 + S.sat / 100) * buff('foot') * (1 + 0.12 * (on.length - 1));
+  const maxS = maxStock();
+  let arrT = 0, lostT = 0, rev = 0, over = 0, under = 0, servedT = 0;
+
+  for (const it of on) {
+    const s = S.items[it.id];
+    const p = s.price / it.ref;
+    const arr = lam * it.pop * demand(p) / sumPop * dt;
+    const total = s.q + arr;
+    const served = Math.min(total, capacity(it, s) * dt, s.stock);
+    const rest = total - served;
+    s.q = Math.min(rest, 6 + 5 * s.staff);
+    const lost = rest - s.q;
+    s.stock -= served;
+    const inc = served * s.price * buff('price');
+    rev += inc;
+    addStat(it.id, served, inc, served * unitCost(it), lost);
+    arrT += arr; lostT += lost; servedT += served;
+    over += arr * Math.max(0, p - 1.15) * 40;
+    under += arr * Math.max(0, 1 - p) * 15;
+    visAcc[it.id] = (visAcc[it.id] || 0) + served;
+    visLost[it.id] = (visLost[it.id] || 0) + lost;
+    if (s.auto && M.auto && s.stock < 0.3 * maxS) restock(it);
+    if (!quiet && s.stock < 1 && !s.warned) { s.warned = true; toast(`⚠️ Stok ${it.name} habis! Isi di tab Menu & Dapur`); }
+    else if (s.stock >= 5) s.warned = false;
+  }
+
+  addRev(rev);
+  S.d.served += servedT; S.d.lost += lostT; S.d.arr += arrT;
+  S.d.hrS[hourIdx()] += servedT; S.d.hrL[hourIdx()] += lostT;
+  S.life.served += servedT; S.life.lost += lostT;
+  rateEma += (rev / dt - rateEma) * (1 - Math.exp(-dt / 10));
+
+  const ratio = arrT > 1e-9 ? lostT / arrT : 0;
+  S.lostEma += (ratio - S.lostEma) * (1 - Math.exp(-dt / 15));
+  const w = arrT > 1e-9 ? 1 / arrT : 0;
+  const target = clamp(78 + M.sat + under * w - over * w - S.lostEma * 55, 5, 100);
+  S.sat += (target - S.sat) * (1 - Math.exp(-dt / 25));
+  S.lam = lam; // untuk tampilan
+
+  S.clock += dt;
+  const hi = Math.floor(OPEN + HOURS * S.clock / DAY);
+  if (hi !== lastHour) { lastHour = hi; if (!quiet) maybeEvent(); }
+  if (S.clock >= DAY) endDay(quiet);
+}
+
+function endDay(quiet) {
+  const items = {};
+  let cogs = 0;
+  for (const id in S.d.items) {
+    const o = S.d.items[id];
+    items[id] = {sold:Math.round(o.sold), rev:Math.round(o.rev), cogs:Math.round(o.cogs), lost:Math.round(o.lost)};
+    cogs += o.cogs;
+  }
+  const r = {day:S.day, rev:S.d.rev, bahan:S.d.bahan, cogs, served:Math.round(S.d.served),
+             lost:Math.round(S.d.lost), sat:Math.round(S.sat), items,
+             hrS:S.d.hrS.map(Math.round), hrL:S.d.hrL.map(Math.round)};
+  S.reports.push(r);
+  if (S.reports.length > 14) S.reports.shift();
+  S.life.days++;
+  S.day++; S.clock = 0; lastHour = -1;
+  S.d = blankDay();
+  S.buffs = S.buffs.filter(b => S.day <= b.until);
+  S.evCool = Math.max(0, S.evCool - 1);
+  chartDirty = true;
+  if (!quiet) toast(`📅 Hari ${r.day} selesai · laba kotor ${rp(r.rev - r.cogs)} · ${r.served} dilayani, ${r.lost} kabur`);
+}
+
+function catchUp(secs) {
+  const m0 = S.money, n = Math.min(Math.floor(secs), OFFLINE_CAP);
+  for (let i = 0; i < n; i++) step(1, true);
+  return S.money - m0;
+}
+
+/* ================= Aksi pemain ================= */
+function serve() {
+  if (S.paused) return;
+  let left = 1 + M.click, got = 0, rev = 0;
+  const order = ITEMS.filter(it => S.items[it.id].on)
+    .sort((a, b) => S.items[b.id].price - S.items[a.id].price);
+  for (const it of order) {
+    const s = S.items[it.id];
+    const n = Math.min(left, Math.floor(s.q), Math.floor(s.stock));
+    if (n > 0) {
+      s.q -= n; s.stock -= n; left -= n; got += n;
+      const inc = n * s.price * buff('price');
+      rev += inc;
+      addStat(it.id, n, inc, n * unitCost(it), 0);
+      S.d.hrS[hourIdx()] += n;
+      visAcc[it.id] = (visAcc[it.id] || 0) + n;
+    }
+  }
+  if (got > 0) { addRev(rev); S.d.served += got; S.life.served += got; }
+  else { rev = 100 * (1 + M.click); addRev(rev); }
+  const b = $('serve').getBoundingClientRect();
+  floatText(b.left + b.width / 2 + (Math.random() * 40 - 20), b.top, '+' + fmt(rev));
+}
+function unlockItem(id) {
+  const it = ITEMS.find(x => x.id === id), s = S.items[id];
+  if (s.on || S.money < it.unlock) return;
+  S.money -= it.unlock; s.on = true; s.stock = 30;
+  toast(`${it.em} ${it.name} masuk menu!`);
+}
+function buyStaff(id) {
+  const it = ITEMS.find(x => x.id === id), s = S.items[id], c = staffCost(it, s);
+  if (S.money < c) return; S.money -= c; s.staff++;
+}
+function buyLvl(id) {
+  const it = ITEMS.find(x => x.id === id), s = S.items[id], c = lvlCost(it, s);
+  if (S.money < c) return; S.money -= c; s.lvl++;
+}
+function buyUp(id) {
+  const u = UPS.find(x => x.id === id);
+  if (!u || S.ups[id] || S.money < u.cost) return;
+  S.money -= u.cost; S.ups[id] = 1; dirty = true; upKey = '';
+}
+function buyBranch() {
+  const c = branchCost();
+  if (S.money < c) return; S.money -= c; S.branches++;
+  toast(`🏪 Cabang ke-${S.branches} dibuka!`);
+}
+function buyPerk(id) {
+  const pk = PERKS.find(x => x.id === id), l = perk(id), c = pk.cost(l);
+  if (l >= pk.max || S.rep < c) return;
+  S.rep -= c; S.perks[id] = l + 1; dirty = true;
+}
+function doPrestige() {
+  const g = prestigeGain();
+  if (g < 1) return;
+  if (!confirm(`Naik Kelas? Uang, menu, karyawan, dan cabang direset. Kamu dapat +${g} Reputasi.`)) return;
+  snapshot('sebelum Naik Kelas').catch(() => {});
+  S.rep += g; S.repTotal += g; S.prestiges++;
+  resetRun(S);
+  dirty = true; upKey = ''; ev = null; renderEvent(); chartDirty = true;
+  toast(`🎓 Naik kelas! +${g} Reputasi`);
+  save();
+}
+
+/* ================= Event acak ================= */
+function addBuff(b) {
+  S.buffs = S.buffs.filter(x => x.id !== b.id);
+  S.buffs.push(b);
+}
+const EVENTS = [
+  {id:'rain', w:25, make:() => ({em:'🌧️', title:'Hujan deras!', dflt:1,
+    text:'Siswa malas keluar kelas. Pengunjung turun 40% sampai sore.',
+    choices:[
+      {label:'Promo hujan: harga -20%, pengunjung turun cuma 10%',
+       run:() => addBuff({id:'rain', label:'☔ Promo hujan', foot:.9, price:.8, until:S.day})},
+      {label:'Pasrah saja',
+       run:() => addBuff({id:'rain', label:'🌧️ Hujan', foot:.6, until:S.day})}]})},
+  {id:'check', w:20, cond:() => !M.clean, make:() => {
+    const fee = Math.max(5000, Math.round(S.money * 0.05));
+    return {em:'🧑‍🏫', title:'Bu Guru sidak kantin!', dflt:2,
+      text:'Beliau mengecek kebersihan dapur. Mau bagaimana?',
+      choices:[
+        {label:`Rapikan dapur kilat · ${rp(fee)}`, run:() => {
+          if (S.money >= fee) { S.money -= fee; bumpSat(10); toast('Dapur rapi, Bu Guru puas 👍'); }
+          else { bumpSat(-12); toast('Uang kurang, Bu Guru kecewa'); } }},
+        {label:'Beri gorengan gratis (stok -30)', run:() => {
+          const s = S.items.gorengan, n = Math.min(30, Math.floor(s.stock));
+          s.stock -= n; bumpSat(n >= 15 ? 6 : -6);
+          toast(n >= 15 ? 'Bu Guru senyum sambil ngunyah' : 'Stok gorengan kurang, beliau cemberut'); }},
+        {label:'Pura-pura sibuk', run:() => { bumpSat(-12); toast('Bu Guru mencatat sesuatu...'); }}]};
+  }},
+  {id:'cater', w:20, make:() => {
+    const on = ITEMS.filter(it => S.items[it.id].on);
+    const it = on[Math.floor(Math.random() * on.length)];
+    const n = 40 + 20 * on.length, price = Math.round(it.ref * 1.4);
+    return {em:'📦', title:'Pesanan katering OSIS!', dflt:1,
+      text:`Butuh ${n} porsi ${it.name} dengan harga ${rp(price)}/porsi (stok harus cukup).`,
+      choices:[
+        {label:`Terima · dapat ${rp(n * price)}`, run:() => {
+          const s = S.items[it.id];
+          if (s.stock >= n) { s.stock -= n; addRev(n * price); addStat(it.id, n, n * price, n * unitCost(it), 0); S.life.cater++; toast(`📦 Katering beres: +${rp(n * price)}`); }
+          else toast('Stok kurang, pesanan batal'); }},
+        {label:'Tolak', run:() => {}}]};
+  }},
+  {id:'viral', w:10, make:() => ({em:'📱', title:'Videomu viral!', dflt:0,
+    text:'Kantinmu masuk FYP. Pengunjung ×1,8 selama 2 hari.',
+    choices:[{label:'Mantap! 🎉', run:() => addBuff({id:'viral', label:'📱 Viral ×1,8', foot:1.8, until:S.day + 1})}]})},
+  {id:'hike', w:15, make:() => {
+    const fee = Math.round(S.money * 0.03);
+    return {em:'📈', title:'Harga bahan naik!', dflt:1,
+      text:'Pemasok menaikkan harga 35% selama 2 hari.',
+      choices:[
+        {label:`Kontrak pemasok · ${rp(fee)} (naik cuma 10%)`, run:() => {
+          if (S.money >= fee) { S.money -= fee; addBuff({id:'hike', label:'📈 Bahan +10%', cost:1.1, until:S.day + 1}); }
+          else { addBuff({id:'hike', label:'📈 Bahan +35%', cost:1.35, until:S.day + 1}); toast('Uang kurang untuk kontrak'); } }},
+        {label:'Terima kenaikan', run:() => addBuff({id:'hike', label:'📈 Bahan +35%', cost:1.35, until:S.day + 1})}]};
+  }},
+  {id:'donor', w:10, make:() => {
+    const last = S.reports.length ? S.reports[S.reports.length - 1] : null;
+    const amt = Math.max(20000, last ? (last.rev - last.bahan) * 0.35 : 0);
+    return {em:'🎓', title:'Alumni berbagi rezeki', dflt:0,
+      text:`Alumni sukses mampir dan menyumbang ${rp(amt)}.`,
+      choices:[{label:'Terima kasih, Kak!', run:() => { S.money += amt; }}]};
+  }},
+];
+
+function maybeEvent() {
+  if (ev || S.evCool > 0 || S.day < 2 || Math.random() > 0.18) return;
+  const pool = EVENTS.filter(e => !e.cond || e.cond());
+  let r = Math.random() * pool.reduce((a, e) => a + e.w, 0);
+  let pick = pool[0];
+  for (const e of pool) { r -= e.w; if (r <= 0) { pick = e; break; } }
+  ev = {id:pick.id, def:pick.make(), left:30};
+  S.evCool = 1;
+  renderEvent();
+}
+function resolveEvent(i) {
+  if (!ev) return;
+  const c = ev.def.choices[i] || ev.def.choices[ev.def.dflt];
+  c.run();
+  ev = null; renderEvent();
+}
+function renderEvent() {
+  const box = $('eventBox');
+  box.innerHTML = '';
+  if (!ev) return;
+  const d = ev.def, e = document.createElement('div');
+  e.className = 'event';
+  e.innerHTML = '<h3></h3><p></p><div class="ch"></div><div class="cd"><i></i></div>';
+  e.querySelector('h3').textContent = `${d.em} ${d.title}`;
+  e.querySelector('p').textContent = d.text;
+  d.choices.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = c.label;
+    b.addEventListener('click', () => resolveEvent(i));
+    e.querySelector('.ch').appendChild(b);
+  });
+  box.appendChild(e);
+}
+
+/* ================= UI ================= */
+function toast(msg) {
+  const d = document.createElement('div');
+  d.textContent = msg;
+  $('toast').appendChild(d);
+  setTimeout(() => d.remove(), 4100);
+}
+function floatText(x, y, text) {
+  const f = document.createElement('div');
+  f.className = 'float'; f.textContent = text;
+  f.style.left = x + 'px'; f.style.top = y + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 800);
+}
+
+// --- Stasiun menu
+const stRefs = {};
+function buildStations() {
+  const host = $('stations');
+  ITEMS.forEach(it => {
+    const a = document.createElement('article');
+    a.className = 'st';
+    const step = it.ref >= 10000 ? 500 : it.ref >= 2000 ? 100 : 50;
+    const min = Math.round(it.ref * 0.4 / step) * step, max = Math.round(it.ref * 2.2 / step) * step;
+    a.innerHTML = `
+      <div class="st-h"><span class="em">${it.em}</span><b>${it.name}</b>
+        <span class="chips"><span class="chip q"></span><span class="chip k"></span></span></div>
+      <div class="locked"><button type="button" class="buy ub" style="width:100%"></button></div>
+      <div class="st-b">
+        <label class="pr"><span>Harga</span><input type="range" min="${min}" max="${max}" step="${step}"><output></output></label>
+        <small class="hint"></small>
+        <div class="btns"><button type="button" class="mini r"></button><button type="button" class="mini h"></button><button type="button" class="mini l"></button></div>
+        <label class="auto"><input type="checkbox"> Auto isi stok</label>
+      </div>`;
+    const q = sel => a.querySelector(sel);
+    const r = {el:a, q:q('.q'), k:q('.k'), locked:q('.locked'), body:q('.st-b'), ub:q('.ub'),
+               range:q('input[type=range]'), out:q('output'), hint:q('.hint'),
+               r:q('.r'), h:q('.h'), l:q('.l'), auto:q('.auto'), autoIn:q('.auto input')};
+    r.ub.addEventListener('click', () => unlockItem(it.id));
+    r.r.addEventListener('click', () => restock(it));
+    r.h.addEventListener('click', () => buyStaff(it.id));
+    r.l.addEventListener('click', () => buyLvl(it.id));
+    r.range.addEventListener('input', () => { S.items[it.id].price = Number(r.range.value); });
+    r.autoIn.addEventListener('change', () => { S.items[it.id].auto = r.autoIn.checked; });
+    host.appendChild(a);
+    stRefs[it.id] = r;
+  });
+}
+function updateStations() {
+  const maxS = maxStock();
+  let firstLocked = ITEMS.findIndex(it => !S.items[it.id].on);
+  if (firstLocked < 0) firstLocked = ITEMS.length;
+  ITEMS.forEach((it, i) => {
+    const s = S.items[it.id], r = stRefs[it.id];
+    r.el.hidden = i > firstLocked;
+    r.locked.hidden = s.on; r.body.hidden = !s.on;
+    r.q.hidden = r.k.hidden = !s.on;
+    if (!s.on) {
+      r.ub.textContent = `Buka menu · ${rp(it.unlock)}`;
+      r.ub.disabled = S.money < it.unlock;
+      return;
+    }
+    r.q.textContent = `Antrean ${Math.round(s.q)}`;
+    r.k.textContent = `Stok ${Math.floor(s.stock)}/${maxS}`;
+    r.k.classList.toggle('bad', s.stock < maxS * 0.1);
+    if (document.activeElement !== r.range) r.range.value = s.price;
+    r.out.textContent = rp(s.price);
+    const uc = unitCost(it), p = s.price / it.ref;
+    r.hint.textContent = `Untung ${rp(s.price - uc)}/porsi · Minat pembeli ${Math.round(demand(p) / 1 * 100)}% · Layanan ${fmt(capacity(it, s))}/dtk`;
+    const need = Math.floor(maxS - s.stock), buyN = Math.min(need, Math.floor(S.money / uc));
+    r.r.textContent = need < 1 ? 'Stok penuh' : `Isi stok (+${buyN}) · ${rp(buyN * uc)}`;
+    r.r.disabled = buyN < 1;
+    const hc = staffCost(it, s), lc = lvlCost(it, s);
+    r.h.textContent = `+ Karyawan (${s.staff}) · ${rp(hc)}`; r.h.disabled = S.money < hc;
+    r.l.textContent = `Dapur Lv ${s.lvl} → ${s.lvl + 1} (×1,3) · ${rp(lc)}`; r.l.disabled = S.money < lc;
+    r.auto.hidden = !M.auto;
+    r.autoIn.checked = s.auto;
+  });
+}
+
+// --- Peningkatan
+let upKey = '';
+function updateUps() {
+  const list = UPS.filter(u => !S.ups[u.id]).slice(0, 8);
+  const key = list.map(u => u.id).join(',');
+  const host = $('ups');
+  if (key !== upKey) {
+    upKey = key; host.innerHTML = '';
+    if (!list.length) host.innerHTML = '<p class="empty">Semua peningkatan sudah dibeli. 👏</p>';
+    list.forEach(u => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'up'; b.dataset.id = u.id;
+      b.innerHTML = '<div class="nm"></div><div class="ds"></div><div class="pc"></div>';
+      b.querySelector('.nm').textContent = u.name;
+      b.querySelector('.ds').textContent = u.ds;
+      b.querySelector('.pc').textContent = rp(u.cost);
+      b.addEventListener('click', () => buyUp(u.id));
+      host.appendChild(b);
+    });
+  }
+  host.querySelectorAll('.up').forEach(b => {
+    b.disabled = S.money < UPS.find(u => u.id === b.dataset.id).cost;
+  });
+  const bc = branchCost(), m = 1 + 0.6 * (S.branches + 1);
+  $('branchTxt').textContent = `Sekarang ${S.branches} cabang. Cabang berikutnya mengalikan pengunjung, kecepatan layanan, dan kapasitas stok jadi ×${m.toFixed(1).replace('.', ',')} (sekarang ×${branchMult().toFixed(1).replace('.', ',')}).`;
+  $('branchBtn').textContent = `Buka cabang ke-${S.branches + 1} · ${rp(bc)}`;
+  $('branchBtn').disabled = S.money < bc;
+}
+
+// --- Naik kelas
+const perkRefs = {};
+function buildPerks() {
+  PERKS.forEach(pk => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'up';
+    b.innerHTML = '<div class="nm"></div><div class="ds"></div><div class="pc"></div>';
+    b.querySelector('.ds').textContent = pk.ds;
+    b.addEventListener('click', () => buyPerk(pk.id));
+    $('perks').appendChild(b);
+    perkRefs[pk.id] = b;
+  });
+}
+function updateGrad() {
+  const g = prestigeGain();
+  $('gradTxt').textContent = `Reset seluruh progres dan dapatkan Reputasi dari omzet putaran ini (akar pangkat tiga dari omzet ÷ Rp 200 jt). Tiap poin Reputasi yang pernah kamu kumpulkan memberi +5% pengunjung permanen dan bisa ditukar perk. Omzet putaran ini: ${rp(S.runRev)}.`;
+  $('gradBtn').textContent = g >= 1 ? `Naik Kelas (+${g} Reputasi)` : 'Butuh omzet Rp 200 jt';
+  $('gradBtn').disabled = g < 1;
+  $('repHave').textContent = `· Tersedia: ${S.rep} · Total: ${S.repTotal} (+${S.repTotal * 5}% pengunjung)`;
+  PERKS.forEach(pk => {
+    const b = perkRefs[pk.id], l = perk(pk.id), c = pk.cost(l), maxed = l >= pk.max;
+    b.querySelector('.nm').textContent = `${pk.name} · Lv ${l}`;
+    b.querySelector('.pc').textContent = maxed ? 'Maksimal' : `${c} Reputasi`;
+    b.disabled = maxed || S.rep < c;
+  });
+}
+
+// --- Laporan
+const achBadges = {};
+function buildAch() {
+  ACH.forEach(a => {
+    const s = document.createElement('span');
+    s.className = 'badge'; s.textContent = '???';
+    $('ach').appendChild(s); achBadges[a.id] = s;
+  });
+}
+function paintAch(a) { achBadges[a.id].className = 'badge on'; achBadges[a.id].textContent = a.name; }
+function checkAch() {
+  for (const a of ACH) {
+    if (S.ach[a.id] || !a.test()) continue;
+    S.ach[a.id] = 1; paintAch(a); toast('🏆 ' + a.name);
+  }
+}
+function drawChart() {
+  const c = $('chart'), dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = 150;
+  c.width = Math.round(w * dpr); c.height = h * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.documentElement);
+  const ink = cs.getPropertyValue('--muted').trim(), acc = cs.getPropertyValue('--accent').trim(), bad = cs.getPropertyValue('--bad').trim();
+  const data = S.reports.map(r => r.rev - (r.cogs != null ? r.cogs : r.bahan));
+  x.font = `11px ${FONT}`; x.fillStyle = ink; x.textAlign = 'center';
+  if (!data.length) { x.fillText('Belum ada hari yang selesai', w / 2, h / 2); return; }
+  const mx = Math.max(1, ...data.map(Math.abs)), bw = Math.min(40, (w - 20) / 14 - 4), base = h - 22;
+  data.forEach((v, i) => {
+    const bh = Math.abs(v) / mx * (base - 18);
+    const px = 10 + (i + 0.5) * ((w - 20) / data.length);
+    x.fillStyle = v >= 0 ? acc : bad;
+    x.fillRect(px - bw / 2, v >= 0 ? base - bh : base, bw, Math.max(1, bh));
+    x.fillStyle = ink;
+    x.fillText(String(S.reports[i].day), px, h - 6);
+    x.fillText(fmt(Math.abs(v)), px, (v >= 0 ? base - bh : base + bh) + (v >= 0 ? -4 : 11));
+  });
+}
+/* ---- Statistik per menu */
+const ITEM_COLORS = ['#e8480c', '#2563eb', '#16a34a', '#9333ea', '#ca8a04', '#0891b2'];
+let statRange = 'today', repAt = 0, legendBuilt = false;
+const ZEROS = () => new Array(HOURS).fill(0);
+
+function sumItems(list) {
+  const out = {};
+  for (const m of list) for (const id in m) {
+    const o = out[id] || (out[id] = blankItem()), r = m[id];
+    o.sold += r.sold; o.rev += r.rev; o.cogs += r.cogs; o.lost += r.lost;
+  }
+  return out;
+}
+function sumHours(reps, key) {
+  const out = ZEROS();
+  for (const r of reps) (r[key] || []).forEach((v, i) => { out[i] += v; });
+  return out;
+}
+function statSource(range) {
+  const reps = S.reports;
+  if (range === 'today') {
+    return {label:`· Hari ${S.day}, berjalan`, items:S.d.items, rev:S.d.rev, hrS:S.d.hrS, hrL:S.d.hrL};
+  }
+  if (range === 'yesterday') {
+    const r = reps[reps.length - 1];
+    if (!r) return {label:'· belum ada hari yang selesai', items:{}, rev:0, hrS:ZEROS(), hrL:ZEROS()};
+    return {label:`· Hari ${r.day}`, items:r.items || {}, rev:r.rev, hrS:r.hrS || ZEROS(), hrL:r.hrL || ZEROS()};
+  }
+  const rs = range === 'week' ? reps.slice(-7) : reps;
+  return {
+    label: range === 'week' ? `· ${rs.length} hari terakhir` : '· seumur hidup (jam: 14 hari terakhir)',
+    items: range === 'week' ? sumItems(rs.map(r => r.items || {})) : S.mstat,
+    rev: range === 'week' ? rs.reduce((a, r) => a + r.rev, 0) : S.life.rev,
+    hrS: sumHours(rs, 'hrS'), hrL: sumHours(rs, 'hrL'),
+  };
+}
+const cnt = n => Math.round(n).toLocaleString('id-ID');
+const pct = (a, b) => b > 0 ? (a / b * 100).toFixed(0).replace('.', ',') + '%' : '–';
+
+function renderMenuStats() {
+  const src = statSource(statRange);
+  $('statLabel').textContent = src.label;
+  const rows = ITEMS.map((it, i) => Object.assign({it, i}, src.items[it.id] || blankItem()))
+    .filter(r => S.items[r.it.id].on || r.sold > 0 || r.lost > 0);
+  const known = rows.reduce((a, r) => a + r.rev, 0);
+  const other = Math.max(0, src.rev - known);              // tip dari klik saat antrean kosong
+  const T = rows.reduce((a, r) => ({sold:a.sold + r.sold, cogs:a.cogs + r.cogs, lost:a.lost + r.lost}), {sold:0, cogs:0, lost:0});
+  const totalRev = known + other, profit = totalRev - T.cogs;
+  const best = rows.slice().sort((a, b) => b.sold - a.sold)[0];
+  const richest = rows.slice().sort((a, b) => (b.rev - b.cogs) - (a.rev - a.cogs))[0];
+  const has = T.sold > 0;
+
+  $('statTiles').innerHTML = `
+    <div class="tile"><small>Porsi terjual</small><b>${cnt(T.sold)}</b><span>${pct(T.sold, T.sold + T.lost)} dari yang datang</span></div>
+    <div class="tile"><small>Omzet</small><b>${rp(totalRev)}</b><span>${T.sold > 0 ? rp(known / T.sold) + ' / porsi' : '–'}</span></div>
+    <div class="tile"><small>Laba kotor</small><b>${rp(profit)}</b><span>margin ${pct(profit, totalRev)}</span></div>
+    <div class="tile"><small>Pelanggan kabur</small><b>${cnt(T.lost)}</b><span>${pct(T.lost, T.sold + T.lost)} dari yang datang</span></div>
+    <div class="tile"><small>Terlaris</small><b>${has ? best.it.em + ' ' + best.it.name : '–'}</b><span>${has ? cnt(best.sold) + ' porsi' : ''}</span></div>
+    <div class="tile"><small>Paling untung</small><b>${has ? richest.it.em + ' ' + richest.it.name : '–'}</b><span>${has ? rp(richest.rev - richest.cogs) : ''}</span></div>`;
+
+  const money = n => (n < 0 ? '<span class="neg">' : '<span>') + rp(n) + '</span>';
+  let html = `<thead><tr><th>Menu</th><th>Terjual</th><th>Omzet</th><th>HPP</th><th>Laba</th><th>Margin</th><th>Harga rata²</th><th>Kabur</th><th>Pangsa</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    const share = totalRev > 0 ? r.rev / totalRev * 100 : 0;
+    html += `<tr><td><span class="dot" style="background:${ITEM_COLORS[r.i]}"></span>${r.it.em} ${r.it.name}</td>
+      <td>${cnt(r.sold)}</td><td>${rp(r.rev)}</td><td>${rp(r.cogs)}</td><td>${money(r.rev - r.cogs)}</td>
+      <td>${pct(r.rev - r.cogs, r.rev)}</td><td>${r.sold > 0 ? rp(r.rev / r.sold) : '–'}</td><td>${cnt(r.lost)}</td>
+      <td>${share.toFixed(0)}%<span class="sb"><i style="width:${share}%;background:${ITEM_COLORS[r.i]}"></i></span></td></tr>`;
+  });
+  if (other > 10 + totalRev * 0.005) {     // abaikan selisih pembulatan
+    html += `<tr><td><span class="dot" style="background:var(--muted)"></span>Tip &amp; lainnya</td><td>–</td><td>${rp(other)}</td><td>–</td><td>${rp(other)}</td><td>–</td><td>–</td><td>–</td><td>${(other / totalRev * 100).toFixed(0)}%</td></tr>`;
+  }
+  html += `</tbody><tfoot><tr><td>Total</td><td>${cnt(T.sold)}</td><td>${rp(totalRev)}</td><td>${rp(T.cogs)}</td><td>${money(profit)}</td><td>${pct(profit, totalRev)}</td><td>${T.sold > 0 ? rp(known / T.sold) : '–'}</td><td>${cnt(T.lost)}</td><td></td></tr></tfoot>`;
+  $('menuTbl').innerHTML = rows.length ? html : '<tbody><tr><td>Belum ada data penjualan.</td></tr></tbody>';
+
+  drawHours(src);
+}
+
+function prepCanvas(id, h) {
+  const c = $(id), dpr = window.devicePixelRatio || 1, w = c.clientWidth;
+  if (w < 10) return null;
+  c.width = Math.round(w * dpr); c.height = h * dpr;
+  const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.documentElement);
+  return {x, w, h, muted:cs.getPropertyValue('--muted').trim(), bad:cs.getPropertyValue('--bad').trim(),
+          accent:cs.getPropertyValue('--accent').trim(), line:cs.getPropertyValue('--line').trim()};
+}
+function drawStack() {
+  if (!legendBuilt) {
+    $('legend').innerHTML = ITEMS.map((it, i) => `<span><span class="dot" style="background:${ITEM_COLORS[i]}"></span>${it.name}</span>`).join('');
+    legendBuilt = true;
+  }
+  const g = prepCanvas('chart2', 170);
+  if (!g) return;
+  const {x, w, h} = g, reps = S.reports;
+  x.font = `11px ${FONT}`; x.textAlign = 'center'; x.fillStyle = g.muted;
+  if (!reps.length) { x.fillText('Belum ada hari yang selesai', w / 2, h / 2); return; }
+  const tot = reps.map(r => ITEMS.reduce((a, it) => a + ((r.items || {})[it.id] ? r.items[it.id].rev : 0), 0));
+  const mx = Math.max(1, ...tot), base = h - 20, top = 18, bw = Math.min(40, (w - 20) / 14 - 4);
+  reps.forEach((r, k) => {
+    const px = 10 + (k + 0.5) * ((w - 20) / reps.length);
+    let y = base;
+    ITEMS.forEach((it, i) => {
+      const v = (r.items || {})[it.id] ? r.items[it.id].rev : 0, bh = v / mx * (base - top);
+      if (bh <= 0) return;
+      x.fillStyle = ITEM_COLORS[i];
+      x.fillRect(px - bw / 2, y - bh, bw, bh);
+      y -= bh;
+    });
+    x.fillStyle = g.muted;
+    x.fillText(String(r.day), px, h - 5);
+    x.fillText(fmt(tot[k]), px, y - 4);
+  });
+}
+function drawHours(src) {
+  $('hrNote').textContent = src.label;
+  const g = prepCanvas('chart3', 170);
+  if (!g) return;
+  const {x, w, h} = g, n = HOURS;
+  x.font = `11px ${FONT}`; x.textAlign = 'center';
+  const tot = src.hrS.map((v, i) => v + src.hrL[i]);
+  const mx = Math.max(1, ...tot), base = h - 20, top = 18, slot = (w - 20) / n, bw = Math.min(46, slot - 10);
+  // pita istirahat
+  x.fillStyle = g.line;
+  [[9.25, 10], [12, 12.75]].forEach(([a, b]) => {
+    x.globalAlpha = 0.5;
+    x.fillRect(10 + (a - OPEN) * slot, top - 6, (b - a) * slot, base - top + 6);
+    x.globalAlpha = 1;
+  });
+  for (let i = 0; i < n; i++) {
+    const px = 10 + (i + 0.5) * slot;
+    const hs = src.hrS[i] / mx * (base - top), hl = src.hrL[i] / mx * (base - top);
+    x.fillStyle = g.accent; x.fillRect(px - bw / 2, base - hs, bw, hs);
+    x.fillStyle = g.bad;    x.fillRect(px - bw / 2, base - hs - hl, bw, hl);
+    x.fillStyle = g.muted;
+    x.fillText(String(OPEN + i).padStart(2, '0') + ':00', px, h - 5);
+    if (tot[i] >= 0.5) x.fillText(String(Math.round(src.hrS[i])), px, base - hs - hl - 4);
+  }
+}
+
+function updateReport() {
+  const now = performance.now();
+  if (chartDirty || now - repAt > 500) {
+    repAt = now; chartDirty = false;
+    drawChart(); renderMenuStats(); drawStack();
+  }
+  const r = S.reports[S.reports.length - 1];
+  $('lastDay').innerHTML = r ? `<div class="stat"><span>Hari ${r.day}: omzet · HPP · belanja stok</span><b>${rp(r.rev)} · ${rp(r.cogs != null ? r.cogs : r.bahan)} · ${rp(r.bahan)}</b></div>
+    <div class="stat"><span>Dilayani / kabur (antre kepanjangan atau stok habis)</span><b>${r.served} / ${r.lost}</b></div>
+    <div class="stat"><span>Kepuasan akhir hari</span><b>${r.sat}</b></div>` : '';
+  $('stats').innerHTML = `
+    <div class="stat"><span>Omzet seumur hidup</span><b>${rp(S.life.rev)}</b></div>
+    <div class="stat"><span>Pelanggan dilayani</span><b>${cnt(S.life.served)}</b></div>
+    <div class="stat"><span>Pelanggan kabur</span><b>${cnt(S.life.lost)}</b></div>
+    <div class="stat"><span>Hari bertahan</span><b>${S.life.days}</b></div>
+    <div class="stat"><span>Pesanan katering</span><b>${S.life.cater}</b></div>
+    <div class="stat"><span>Kali Naik Kelas</span><b>${S.prestiges}</b></div>`;
+}
+
+// --- Render utama
+let activeTab = 'menu';
+function render() {
+  if (dirty) { M = mods(); dirty = false; }
+  const hour = OPEN + HOURS * S.clock / DAY;
+  const hh = Math.floor(hour), mm = Math.floor((hour % 1) * 60);
+  $('clock').textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  $('dayLabel').textContent = `Hari ${S.day}`;
+  $('dayBar').style.width = (S.clock / DAY * 100) + '%';
+  $('phase').textContent = S.paused ? '⏸ Dijeda' : phaseAt(hour)[3];
+  $('pause').textContent = S.paused ? '▶ Lanjut' : '⏸ Jeda';
+  $('pause').setAttribute('aria-pressed', String(!!S.paused));
+  $('serve').disabled = !!S.paused;
+  $('money').textContent = rp(S.money);
+  $('rate').textContent = `≈ ${rp(rateEma)} / detik`;
+
+  const face = S.sat >= 85 ? '😄' : S.sat >= 65 ? '🙂' : S.sat >= 45 ? '😐' : S.sat >= 25 ? '😟' : '😡';
+  $('satBar').style.width = S.sat + '%';
+  $('satBar').style.background = `hsl(${Math.round(S.sat * 1.2)},65%,45%)`;
+  $('satTxt').textContent = `${face} ${Math.round(S.sat)}`;
+  const lam = S.lam || 0;
+  $('footBar').style.width = clamp(lam / (FOOT0 * 4) * 100, 0, 100) + '%';
+  $('footTxt').textContent = `${fmt(lam)}/dtk`;
+  let qTot = 0, qCap = 0;
+  for (const it of ITEMS) { const s = S.items[it.id]; if (s.on) { qTot += s.q; qCap += 6 + 5 * s.staff; } }
+  $('queueBar').style.width = (qTot / qCap * 100) + '%';
+  $('queueTxt').textContent = Math.round(qTot) + ' orang';
+
+  $('buffs').innerHTML = S.buffs.map(b => `<span>${b.label}</span>`).join('');
+  if (ev) {
+    const cd = $('eventBox').querySelector('.cd i');
+    if (cd) cd.style.width = (ev.left / 30 * 100) + '%';
+  }
+
+  if (activeTab === 'menu') updateStations();
+  if (activeTab === 'up') updateUps();
+  if (activeTab === 'grad') updateGrad();
+  if (activeTab === 'rep') updateReport();
+}
+
+/* ================= Adegan canvas ================= */
+const cv = $('scene'), cx = cv.getContext('2d');
+const SH = 340;
+const FONT = '"Helvetica Neue","Inter",Helvetica,Arial,sans-serif';
+let SW = 0, cols = null, colsAt = 0, lastDraw = performance.now();
+const sprites = {}, leavers = [], coins = [], walkers = [];
+ITEMS.forEach(it => { sprites[it.id] = []; });
+
+function resizeCv() {
+  const dpr = window.devicePixelRatio || 1;
+  SW = cv.clientWidth || 600;
+  cv.width = Math.round(SW * dpr); cv.height = SH * dpr;
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function person(x, y, p, a) {
+  cx.globalAlpha = a;
+  cx.fillStyle = p === 3 ? cols.bad : [cols.ink, cols.muted, cols.accent][p % 3];
+  cx.beginPath(); cx.arc(x, y - 10, 4, 0, 6.3); cx.fill();
+  cx.beginPath();
+  if (cx.roundRect) cx.roundRect(x - 4, y - 5, 8, 11, 3); else cx.rect(x - 4, y - 5, 8, 11);
+  cx.fill();
+  cx.globalAlpha = 1;
+}
+function draw(now) {
+  requestAnimationFrame(draw);
+  const dt = Math.min(0.1, (now - lastDraw) / 1000); lastDraw = now;
+  if (!cols || now - colsAt > 1000) {
+    const cs = getComputedStyle(document.documentElement), g = k => cs.getPropertyValue(k).trim();
+    cols = {scene:g('--scene'), counter:g('--counter'), ink:g('--ink'), line:g('--line'), muted:g('--muted'), accent:g('--accent'), bad:g('--bad')};
+    colsAt = now;
+  }
+  if (!SW) resizeCv();
+  cx.clearRect(0, 0, SW, SH);
+  cx.fillStyle = cols.scene; cx.fillRect(0, 0, SW, SH);
+
+  const hour = OPEN + HOURS * S.clock / DAY, ph = phaseAt(hour);
+  cx.textAlign = 'left'; cx.font = `12px ${FONT}`; cx.fillStyle = cols.muted;
+  cx.fillText(ph[3].toUpperCase(), 8, 14);
+
+  const colW = SW / ITEMS.length, maxS = maxStock();
+  cx.textAlign = 'center';
+  ITEMS.forEach((it, i) => {
+    const s = S.items[it.id], x = (i + 0.5) * colW;
+    cx.globalAlpha = s.on ? 1 : 0.3;
+    cx.fillStyle = cols.counter;
+    cx.beginPath(); cx.roundRect ? cx.roundRect(x - 34, 22, 68, 48, 4) : cx.rect(x - 34, 22, 68, 48); cx.fill();
+    cx.font = `26px ${FONT}`; cx.textBaseline = 'alphabetic';
+    cx.fillText(s.on ? it.em : '🔒', x, 55);
+    cx.font = `11px ${FONT}`; cx.fillStyle = cols.ink;
+    cx.fillText(it.name.toUpperCase(), x, 84);
+    cx.globalAlpha = 1;
+    if (!s.on) return;
+
+    const f = clamp(s.stock / maxS, 0, 1);
+    cx.fillStyle = cols.line; cx.fillRect(x - 28, 90, 56, 4);
+    cx.fillStyle = f < 0.15 ? '#d33' : '#4a9'; cx.fillRect(x - 28, 90, 56 * f, 4);
+
+    const arr = sprites[it.id], want = Math.min(10, Math.round(s.q));
+    while (arr.length < want) arr.push({x:x + (Math.random() - 0.5) * 50, y:SH + 14, p:Math.floor(Math.random() * 3)});
+    while (arr.length > want) {
+      const g = arr.shift();
+      leavers.push({x:g.x, y:g.y, p:g.p, a:1, vx:(Math.random() < 0.5 ? -1 : 1) * 40});
+    }
+    arr.forEach((g, k) => {
+      g.x += (x - g.x) * Math.min(1, dt * 5);
+      g.y += ((124 + k * 22) - g.y) * Math.min(1, dt * 5);
+      person(g.x, g.y, g.p, 1);
+    });
+    if (s.q > 10.5) { cx.font = `11px ${FONT}`; cx.fillStyle = cols.muted; cx.fillText('+' + Math.round(s.q - 10), x + 22, 124 + 9 * 22 + 4); }
+
+    // Pelanggan yang langsung dilayani (tanpa antre) tidak punya sprite antrean,
+    // jadi ditampilkan sebagai pejalan: datang ke konter → bayar (koin) → pergi.
+    const calm = arr.length < 2;
+    let acc = visAcc[it.id] || 0, n = 0;
+    while (acc >= 1 && n < 2) {
+      if (calm && walkers.length < 80) walkers.push({x:x + (Math.random() - 0.5) * 40, y:SH + 14, p:Math.floor(Math.random() * 3), a:1, ty:110, out:false, lost:false, vx:(Math.random() < 0.5 ? -1 : 1) * (35 + Math.random() * 30)});
+      else if (coins.length < 40) coins.push({x:x + (Math.random() - 0.5) * 24, y:68, a:1});
+      acc -= 1; n++;
+    }
+    visAcc[it.id] = acc > 6 ? 0 : acc;
+    // Pelanggan yang kabur: mendekat, melihat antrean/stok, lalu balik badan (baju merah muda)
+    let lo = visLost[it.id] || 0, m = 0;
+    while (lo >= 1 && m < 1 && walkers.length < 80) {
+      walkers.push({x:x + (Math.random() - 0.5) * 40, y:SH + 14, p:3, a:1, ty:150 + Math.random() * 60, out:false, lost:true, vx:(Math.random() < 0.5 ? -1 : 1) * (35 + Math.random() * 30)});
+      lo -= 1; m++;
+    }
+    visLost[it.id] = lo > 6 ? 0 : lo;
+  });
+
+  for (let i = leavers.length - 1; i >= 0; i--) {
+    const g = leavers[i];
+    g.x += g.vx * dt; g.y -= 26 * dt; g.a -= dt * 1.3;
+    if (g.a <= 0) leavers.splice(i, 1); else person(g.x, g.y, g.p, g.a);
+  }
+  for (let i = walkers.length - 1; i >= 0; i--) {
+    const g = walkers[i];
+    if (!g.out) {
+      g.y -= 95 * dt;
+      if (g.y <= g.ty) {
+        g.out = true;
+        if (!g.lost && coins.length < 40) coins.push({x:g.x, y:g.y - 14, a:1});
+      }
+    } else {
+      g.x += g.vx * dt; g.y += (g.lost ? 40 : -10) * dt; g.a -= dt * 1.1;
+    }
+    if (g.a <= 0) walkers.splice(i, 1); else person(g.x, g.y, g.p, Math.min(1, g.a));
+  }
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    c.y -= 40 * dt; c.a -= dt * 1.1;
+    if (c.a <= 0) { coins.splice(i, 1); continue; }
+    cx.globalAlpha = c.a; cx.fillStyle = '#f2b632';
+    cx.beginPath(); cx.arc(c.x, c.y, 4, 0, 6.3); cx.fill(); cx.globalAlpha = 1;
+  }
+
+  if (S.paused) {
+    cx.fillStyle = 'rgba(0,0,0,.4)'; cx.fillRect(0, 0, SW, SH);
+    cx.fillStyle = '#fff'; cx.textAlign = 'center'; cx.font = `700 28px ${FONT}`;
+    cx.fillText('⏸ DIJEDA', SW / 2, SH / 2);
+    cx.font = `13px ${FONT}`; cx.fillText('Tekan P atau tombol Lanjut', SW / 2, SH / 2 + 24);
+  }
+
+  if (S.buffs.some(b => b.id === 'rain')) {
+    cx.strokeStyle = 'rgba(120,160,220,.55)'; cx.lineWidth = 1; cx.beginPath();
+    const t = now / 1000;
+    for (let i = 0; i < 70; i++) {
+      const rx = (i * 97 + t * 40) % SW, ry = (i * 53 + t * 380) % SH;
+      cx.moveTo(rx, ry); cx.lineTo(rx - 4, ry + 12);
+    }
+    cx.stroke();
+  }
+}
+window.addEventListener('resize', () => { resizeCv(); chartDirty = true; });
+
+/* ================= Kontrol ================= */
+function togglePause() {
+  S.paused = !S.paused;
+  toast(S.paused ? '⏸ Game dijeda' : '▶ Lanjut');
+  save();
+}
+$('pause').addEventListener('click', togglePause);
+
+let bossOn = false;
+function toggleBoss() {
+  bossOn = !bossOn;
+  if (bossOn && document.activeElement) document.activeElement.blur();
+  $('boss').hidden = !bossOn;
+  document.title = bossOn ? 'Rangkuman Ekonomi Bab 3' : 'Kantin Tycoon';
+}
+$('bossBtn').addEventListener('click', toggleBoss);
+
+// Pintasan keyboard. Dipasang di fase capture supaya Spasi selalu "layani", walau fokus
+// masih menempel di tombol/checkbox yang barusan diklik (jika tidak, Spasi malah menekan kontrol itu).
+const SPEEDS = [1, 2, 5, 10];
+const isSpace = e => e.code === 'Space' || e.key === ' ';
+const isTyping = t => !!t && (t.isContentEditable || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' ||
+  (t.tagName === 'INPUT' && !['checkbox', 'radio', 'range', 'button'].includes(t.type)));
+function setSpeed(n, announce) {
+  speed = n; syncSpeedUi();
+  if (announce) toast(`⏩ Kecepatan ×${n}`);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { toggleBoss(); return; }
+  if (e.ctrlKey || e.altKey || e.metaKey || isTyping(e.target)) return;
+  if (isSpace(e)) {
+    if (bossOn) return;
+    e.preventDefault();                 // cegah tombol/checkbox terfokus ikut teraktivasi
+    if (!e.repeat) serve();
+    return;
+  }
+  if (e.repeat) return;
+  const k = e.key;
+  if (e.code === 'KeyP' || k === 'p' || k === 'P') { togglePause(); return; }
+  const n = '1234'.indexOf(k);                    // cocokkan lewat key: bebas dari tata letak keyboard
+  if (k.length === 1 && n >= 0) { setSpeed(SPEEDS[n], true); return; }
+  const i = SPEEDS.indexOf(speed);
+  if (k === '+' || k === '=') setSpeed(SPEEDS[Math.min(SPEEDS.length - 1, i + 1)], true);
+  else if (k === '-' || k === '_') setSpeed(SPEEDS[Math.max(0, i - 1)], true);
+}, true);
+// Tombol mengaktifkan diri saat Spasi dilepas (keyup); batalkan juga di sini
+document.addEventListener('keyup', e => {
+  if (isSpace(e) && !bossOn && !isTyping(e.target) && !e.ctrlKey && !e.altKey && !e.metaKey) e.preventDefault();
+}, true);
+$('serve').addEventListener('click', serve);
+$('branchBtn').addEventListener('click', buyBranch);
+$('gradBtn').addEventListener('click', doPrestige);
+
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]');
+  if (!b) return;
+  activeTab = b.dataset.t;
+  $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  ['menu', 'up', 'grad', 'rep', 'set'].forEach(t => { $('p-' + t).hidden = t !== activeTab; });
+  if (activeTab === 'rep') chartDirty = true;
+  if (activeTab === 'set') { renderAccount(); renderSlots(); }
+  render();
+});
+$('speed').addEventListener('click', e => {
+  const b = e.target.closest('button[data-s]');
+  if (!b) return;
+  setSpeed(Number(b.dataset.s));
+});
+function syncSpeedUi() {
+  $('speed').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(Number(x.dataset.s) === speed)));
+}
+
+$('statRange').addEventListener('click', e => {
+  const b = e.target.closest('button[data-r]');
+  if (!b) return;
+  statRange = b.dataset.r;
+  $('statRange').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  chartDirty = true;
+  updateReport();
+});
+
+function copyCode(code) {
+  const done = () => toast('Kode disalin ke clipboard');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, () => prompt('Salin kode ini:', code));
+  else prompt('Salin kode ini:', code);
+}
+const cleanName = (n, fb) => (n || '').trim().slice(0, 30) || fb;
+
+$('slots').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  const id = b.dataset.id;
+  try {
+    switch (b.dataset.act) {
+      case 'save': await saveNow(); toast('💾 Tersimpan'); break;
+      case 'load': await switchSlot(id); toast('Slot dimuat'); break;
+      case 'rename': {
+        const cur = slotsCache.find(x => x.id === id);
+        const n = prompt('Nama slot:', cur ? cur.name : '');
+        if (n !== null) await renameSlot(id, cleanName(n, cur.name));
+        break;
+      }
+      case 'export': {
+        if (!id || id === activeId) { await saveNow(); copyCode(exportCode(S)); }
+        else copyCode(exportCode((await store.getSlot(id)).data));
+        break;
+      }
+      case 'delete': {
+        const cur = slotsCache.find(x => x.id === id);
+        if (confirm(`Hapus slot "${cur.name}" beserta cadangannya? Tidak bisa dibatalkan.`)) await deleteSlot(id);
+        break;
+      }
+    }
+  } catch (err) { dbFail(err); }
+  renderSlots();
+});
+$('snaps').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act="restore"]');
+  if (!b || !confirm('Pulihkan cadangan ini? Kondisi sekarang disimpan dulu sebagai cadangan baru.')) return;
+  try { await restoreSnapshot(Number(b.dataset.key)); toast('Cadangan dipulihkan'); } catch (err) { dbFail(err); }
+  renderSlots();
+});
+$('slotNew').addEventListener('click', async () => {
+  if (!dbOk) { toast('Database tidak tersedia di browser ini'); return; }
+  const n = prompt('Nama slot baru:', `Kantin ${slotsCache.length + 1}`);
+  if (n === null) return;
+  try { await createAndSwitch(cleanName(n, `Kantin ${slotsCache.length + 1}`)); toast('Slot baru dibuat'); } catch (err) { dbFail(err); }
+  renderSlots();
+});
+$('imp').addEventListener('click', async () => {
+  const code = prompt('Tempel kode simpanan:');
+  if (!code) return;
+  let st;
+  try { st = normalize(JSON.parse(decodeURIComponent(escape(atob(code.trim()))))); }
+  catch (err) { toast('Kode tidak valid'); return; }
+  try {
+    if (dbOk) { await createAndSwitch('Impor ' + new Date().toLocaleDateString('id-ID'), st); }
+    else { applyState(st); afterLoad(); }
+    toast('Simpanan berhasil dimuat');
+  } catch (err) { dbFail(err); }
+  renderSlots();
+});
+$('reset').addEventListener('click', async () => {
+  if (!confirm('Hapus SEMUA slot, cadangan, dan Reputasi? Tidak bisa dibatalkan.')) return;
+  try {
+    if (dbOk) {
+      switching = true;
+      await store.clearAll();
+      slotsCache = []; activeId = null; switching = false;
+      const id = await createSlot('Kantin 1', freshState());
+      activeId = id; await store.setActive(id);
+    }
+    try { localStorage.removeItem(MIRROR_KEY); localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    applyState(freshState()); afterLoad();
+    toast('Semua data dihapus');
+  } catch (err) { switching = false; dbFail(err); }
+  renderSlots();
+});
+
+/* ================= Loop ================= */
+let lastReal = performance.now(), saveAt = 0;
+function tick(real) {
+  if (S.paused) return;
+  if (ev) { ev.left -= Math.min(real, 1); if (ev.left <= 0) resolveEvent(ev.def.dflt); }
+  let g = real * speed;
+  if (g > 6) {                       // tab di latar belakang: simulasi kasar per detik
+    const gain = catchUp(g);
+    toast(`🏪 Kantin tetap buka ${fmtDur(g)}: uang ${gain >= 0 ? '+' : ''}${rp(gain)}`);
+    return;
+  }
+  while (g > 0) { const d = Math.min(g, 0.25); step(d, false); g -= d; }
+}
+function startLoop() {
+  lastReal = performance.now();
+  setInterval(() => {
+    const now = performance.now();
+    tick((now - lastReal) / 1000);
+    lastReal = now;
+    checkAch();
+    render();
+    if (now - saveAt > 5000) { save(); saveAt = now; }
+  }, 100);
+  window.addEventListener('beforeunload', save);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+}
+
+/* ================= Akun ================= */
+const GUEST_KEY = 'kantin-guest';
+let account = null, serverInfo = null;
+
+// Permintaan auth: tidak melempar galat, mengembalikan {ok, ...data} atau {ok:false, error}
+async function authRequest(path, body) {
+  try {
+    const r = await fetch('/api' + path, {method:'POST', body:JSON.stringify(body || {}),
+                                          headers:{'X-Kantin':'1', 'Content-Type':'application/json'}});
+    const j = await r.json().catch(() => ({}));
+    return r.ok ? Object.assign({ok:true}, j) : {ok:false, error:j.error || 'Server ' + r.status};
+  } catch (e) { return {ok:false, error:'Tidak bisa menghubungi server.'}; }
+}
+
+// Menampilkan layar masuk/daftar; resolve {user} bila berhasil, {guest:true} bila tanpa akun
+function showAuth() {
+  return new Promise(resolve => {
+    const box = $('auth'), form = $('authForm');
+    let mode = 'login', busy = false;
+    const setMode = m => {
+      mode = m;
+      $('authTabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.m === m)));
+      $('authPass2Row').hidden = m !== 'register';
+      $('authPass2').required = m === 'register';
+      $('authPass').autocomplete = m === 'register' ? 'new-password' : 'current-password';
+      $('authSubmit').textContent = m === 'register' ? 'Buat akun' : 'Masuk';
+      $('authErr').textContent = '';
+    };
+    setMode('login');
+    box.hidden = false;
+    $('authUser').focus();
+    $('authTabs').onclick = e => { const b = e.target.closest('button[data-m]'); if (b) setMode(b.dataset.m); };
+    $('authGuest').onclick = () => {
+      try { localStorage.setItem(GUEST_KEY, '1'); } catch (e) {}
+      box.hidden = true;
+      resolve({guest:true});
+    };
+    form.onsubmit = async e => {
+      e.preventDefault();
+      if (busy) return;
+      const username = $('authUser').value.trim(), password = $('authPass').value;
+      if (mode === 'register' && password !== $('authPass2').value) {
+        $('authErr').textContent = 'Kata sandi tidak sama.';
+        return;
+      }
+      busy = true; $('authSubmit').disabled = true; $('authErr').textContent = '';
+      const res = await authRequest(mode === 'register' ? '/register' : '/login', {username, password});
+      busy = false; $('authSubmit').disabled = false;
+      if (!res.ok) { $('authErr').textContent = res.error; return; }
+      $('authPass').value = ''; $('authPass2').value = '';
+      try { localStorage.removeItem(GUEST_KEY); } catch (e) {}
+      box.hidden = true;
+      resolve({user:res.user});
+    };
+  });
+}
+
+// Server SQLite + akun bila tersedia; kalau tidak (atau pilih tanpa akun) → IndexedDB
+async function chooseStore() {
+  dbOk = false;
+  if (location.protocol.startsWith('http')) {
+    try { serverInfo = await api('GET', '/ping'); } catch (e) { serverInfo = null; }
+    if (serverInfo && serverInfo.ok) {
+      let me = null;
+      try { me = await api('GET', '/me'); } catch (e) {}
+      if (me && me.user) account = me.user;
+      else {
+        let guest = false;
+        try { guest = localStorage.getItem(GUEST_KEY) === '1'; } catch (e) {}
+        if (!guest) { const res = await showAuth(); if (res.user) account = res.user; }
+      }
+      if (account) {
+        httpStore.label = `File SQLite: ${serverInfo.file} · akun ${account.name}`;
+        store = httpStore; dbOk = true;
+        return;
+      }
+    }
+  }
+  try { await idbStore.init(); store = idbStore; dbOk = true; } catch (e) { dbOk = false; }
+}
+
+function clearLocalSession() {
+  try { localStorage.removeItem(MIRROR_KEY); } catch (e) {}
+}
+function renderAccount() {
+  const host = $('acctBody');
+  host.innerHTML = '';
+  const p = document.createElement('p');
+  p.className = 'empty';
+  host.appendChild(p);
+  const row = document.createElement('div');
+  row.className = 'setrow';
+  const mk = (label, fn, cls) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label;
+    if (cls) b.className = cls;
+    b.addEventListener('click', fn);
+    row.appendChild(b);
+    return b;
+  };
+  if (account) {
+    p.textContent = `Masuk sebagai ${account.name}. Slot dan cadangan milik akun ini tersimpan di file ${serverInfo.file} dan tidak terlihat oleh akun lain.`;
+    host.appendChild(row);
+    mk('Keluar', async () => {
+      switching = true;                 // hentikan simpan-otomatis agar salinan darurat tidak tertulis ulang
+      await authRequest('/logout');
+      clearLocalSession();
+      location.reload();
+    });
+
+    const pw = document.createElement('details');
+    pw.innerHTML = '<summary>Ganti kata sandi</summary><div class="acctform">' +
+      '<input type="password" placeholder="Kata sandi lama" autocomplete="current-password" maxlength="128">' +
+      '<input type="password" placeholder="Kata sandi baru (min. 6 karakter)" autocomplete="new-password" maxlength="128">' +
+      '<div class="setrow"><button type="button">Simpan kata sandi</button></div></div>';
+    pw.querySelector('button').addEventListener('click', async () => {
+      const [a, b] = pw.querySelectorAll('input');
+      const res = await authRequest('/password', {old:a.value, new:b.value});
+      toast(res.ok ? 'Kata sandi diganti' : res.error);
+      if (res.ok) { a.value = ''; b.value = ''; }
+    });
+    host.appendChild(pw);
+
+    const del = document.createElement('details');
+    del.innerHTML = '<summary>Hapus akun</summary><div class="acctform">' +
+      '<small>Semua slot dan cadangan akun ini ikut terhapus permanen.</small>' +
+      '<input type="password" placeholder="Kata sandi untuk konfirmasi" autocomplete="current-password" maxlength="128">' +
+      '<div class="setrow"><button type="button" class="danger">Hapus akun saya</button></div></div>';
+    del.querySelector('button').addEventListener('click', async () => {
+      if (!confirm('Hapus akun beserta SEMUA slot dan cadangannya? Tidak bisa dibatalkan.')) return;
+      const res = await authRequest('/account/delete', {password:del.querySelector('input').value});
+      if (!res.ok) { toast(res.error); return; }
+      switching = true;
+      clearLocalSession();
+      location.reload();
+    });
+    host.appendChild(del);
+  } else if (serverInfo && serverInfo.ok) {
+    p.textContent = 'Mode tanpa akun: simpanan hanya ada di browser ini (IndexedDB) dan tidak ikut ke browser lain.';
+    host.appendChild(row);
+    mk('Masuk / Daftar', () => {
+      try { localStorage.removeItem(GUEST_KEY); } catch (e) {}
+      location.reload();
+    });
+  } else {
+    p.textContent = 'Akun butuh server. Jalankan jalankan.bat (atau python server.py) lalu buka game dari alamat 127.0.0.1 yang tampil. Saat ini simpanan hanya di browser ini.';
+  }
+}
+
+/* ================= Mulai ================= */
+async function boot() {
+  let data = null, recovered = false;
+  await chooseStore();
+  if (dbOk) {
+    try {
+      await refreshSlots();
+      let aid = await store.getActive();
+      // Slot yang ada di salinan darurat browser tapi hilang dari database (mis. file DB terhapus):
+      // simpan sebagai slot baru sebelum ada yang menimpanya.
+      const mirror = readLocal(MIRROR_KEY);
+      if (mirrorMine(mirror) && mirror.id && !slotsCache.some(x => x.id === mirror.id) &&
+          mirror.data.life && mirror.data.life.rev > 0) {
+        aid = await createSlot('Pemulihan ' + new Date().toLocaleDateString('id-ID'), normalize(mirror.data));
+        recovered = true;
+      }
+      if (!slotsCache.length) {   // pertama kali: pindahkan simpanan lama (localStorage) bila ada
+        const legacy = readLocal(SAVE_KEY);
+        aid = await createSlot(legacy ? 'Simpanan lama' : 'Kantin 1', normalize(legacy || {}));
+      }
+      if (!slotsCache.some(x => x.id === aid)) aid = slotsCache[0].id;
+      activeId = aid;
+      await store.setActive(aid);
+      data = (await store.getSlot(aid)).data;
+      const mir = readLocal(MIRROR_KEY);   // cadangan sinkron bila penulisan terakhir ke DB terputus
+      if (mirrorMine(mir) && mir.id === aid && mir.data.lastSave > (data.lastSave || 0)) data = mir.data;
+    } catch (e) { dbOk = false; }
+  }
+  if (!dbOk) {
+    const mir = readLocal(MIRROR_KEY);
+    data = (mirrorMine(mir) && mir.data) || readLocal(SAVE_KEY);
+  }
+  applyState(normalize(data || {}));
+
+  buildStations(); buildPerks(); buildAch();
+  resizeCv();
+  afterLoad();
+  if (!dbOk) toast('⚠️ Database simpanan tidak tersedia, progres mungkin hilang saat tab ditutup');
+  if (recovered) toast('♻️ Simpananmu dipulihkan dari salinan darurat di browser ini (slot "Pemulihan")');
+  const away = S.paused ? 0 : Math.min((Date.now() - S.lastSave) / 1000, OFFLINE_CAP);
+  if (away > 30) {
+    const gain = catchUp(away);
+    toast(`🏪 Kantin tetap buka ${fmtDur(away)} saat kamu pergi: uang ${gain >= 0 ? '+' : ''}${rp(gain)}`);
+  }
+  render();
+  requestAnimationFrame(draw);
+  startLoop();
+}
+
+S = freshState(); M = mods(); dirty = false;
+boot();
+
+window.__K = {get S() { return S; }, step, serve, mods:() => M, saveNow, snapshot, switchSlot, createAndSwitch,
+              get db() { return {ok:dbOk, activeId, slots:slotsCache}; }};   // untuk debugging
+})();
+</script>
+</body>
+</html>

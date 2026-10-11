@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kantin Sekolah</title>
+<style>
+:root{
+  --bg:#fbf6ec; --card:#ffffff; --ink:#2b2418; --muted:#7a6f5c; --line:#e8dfcc;
+  --accent:#d9622b; --accent-ink:#ffffff; --good:#2f8f4e; --gold:#f2b632; --soft:#f5ecda;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1812; --card:#26211a; --ink:#f1e9d8; --muted:#a79c85; --line:#3a3327;
+    --accent:#f08a4b; --accent-ink:#1c1812; --good:#5fc47f; --gold:#f2b632; --soft:#302a20;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+h2{font-size:16px;margin:0 0 10px}
+
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;padding:10px 16px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px}
+.money{margin-left:auto;text-align:right;line-height:1.2}
+.money b{font-size:24px;font-variant-numeric:tabular-nums}
+.money small{display:block;color:var(--muted)}
+.chip{background:var(--gold);color:#2b2418;border-radius:99px;padding:3px 10px;font-weight:600;font-size:13px}
+.chip[hidden]{display:none}
+
+main{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:16px;padding:16px;max-width:1080px;margin:0 auto}
+@media (max-width:760px){main{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+
+.stage{text-align:center}
+#tap{width:200px;height:200px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font-weight:700;font-size:17px;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .06s,box-shadow .06s;
+  user-select:none;-webkit-tap-highlight-color:transparent}
+#tap:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+#tap .em{font-size:68px;line-height:1}
+.per-click{margin:14px 0 0;color:var(--muted)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.row h2{margin:0}
+.qty{display:flex;gap:4px}
+.qty button{border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:3px 10px;font-size:13px}
+.qty button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+.gen{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.gen:first-child{border-top:0}
+.gen[hidden]{display:none}
+.gen .em{font-size:30px;text-align:center}
+.gen .nm{font-weight:600}
+.gen .ds{color:var(--muted);font-size:13px}
+.gen .own{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.buy{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;
+  padding:7px 12px;min-width:132px;font-weight:600;font-variant-numeric:tabular-nums}
+.buy:disabled{background:transparent;color:var(--muted);border-color:var(--line);cursor:not-allowed}
+
+#ups{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.up{text-align:left;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 10px}
+.up:disabled{opacity:.55;cursor:not-allowed}
+.up:not(:disabled){border-color:var(--accent)}
+.up .nm{font-weight:600;font-size:14px}
+.up .ds{font-size:12.5px;color:var(--muted)}
+.up .pr{font-weight:700;font-size:13px;margin-top:2px;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:13px;margin:0}
+
+.stat{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;padding:2px 0}
+.stat b{color:var(--ink);font-variant-numeric:tabular-nums}
+.prestige p{margin:0 0 10px;color:var(--muted);font-size:13px}
+.ghost{width:100%;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:8px;font-weight:600}
+.ghost:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed}
+
+.ach{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:12.5px;border-radius:99px;padding:3px 10px;background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.badge.on{background:var(--good);color:#fff;border-color:var(--good)}
+
+footer{max-width:1080px;margin:0 auto;padding:0 16px 24px;color:var(--muted);font-size:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+footer button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:4px 10px;font-size:13px;color:var(--muted)}
+
+.float{position:fixed;pointer-events:none;font-weight:700;color:var(--accent);z-index:20;animation:up .8s ease-out forwards;text-shadow:0 1px 0 var(--bg)}
+@keyframes up{to{transform:translateY(-60px);opacity:0}}
+.bell{position:fixed;z-index:15;font-size:44px;background:var(--gold);border:0;border-radius:50%;width:70px;height:70px;
+  box-shadow:0 4px 14px rgba(0,0,0,.3);animation:ring .6s ease-in-out infinite alternate}
+@keyframes ring{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,420px)}
+#toast div{background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:14px;text-align:center;animation:fade 3.6s forwards}
+@keyframes fade{0%{opacity:0;transform:translateY(8px)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
+
+/* Layar darurat */
+#boss{position:fixed;inset:0;z-index:100;background:#f1f3f4;color:#202124;overflow:auto;font-family:Arial,Helvetica,sans-serif}
+#boss[hidden]{display:none}
+#boss .bar{background:#fff;border-bottom:1px solid #dadce0;padding:8px 20px;display:flex;gap:18px;font-size:13px;color:#444;position:sticky;top:0}
+#boss .bar b{color:#1a56a8}
+#boss .page{background:#fff;max-width:760px;margin:24px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.25);min-height:900px;line-height:1.7;font-size:15px}
+#boss h1{font-size:24px;margin:0 0 4px}
+#boss h3{margin:22px 0 4px}
+#boss .sub{color:#666;margin:0 0 18px;font-size:13px}
+@media (max-width:640px){#boss .page{padding:28px 20px;margin:0}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">🍢 Kantin Sekolah</div>
+  <span class="chip" id="frenzy" hidden></span>
+  <div class="money"><b id="money">Rp 0</b><small id="cps">0 / detik</small></div>
+</header>
+
+<main>
+  <div class="col">
+    <section class="card stage">
+      <button id="tap" type="button"><span class="em">🍢</span><span>Jual Gorengan!</span></button>
+      <p class="per-click" id="perClick"></p>
+    </section>
+
+    <section class="card prestige">
+      <h2>🎓 Naik Kelas</h2>
+      <p>Mulai ulang dari awal, tapi dapat <b>Reputasi</b>: tiap poin menambah +5% semua pendapatan, permanen. Reputasi didapat dari total uang di putaran ini.</p>
+      <div class="stat"><span>Reputasi sekarang</span><b id="rep">0</b></div>
+      <button class="ghost" id="prestige" type="button"></button>
+    </section>
+
+    <section class="card">
+      <h2>Statistik</h2>
+      <div class="stat"><span>Total uang seumur hidup</span><b id="stLife">0</b></div>
+      <div class="stat"><span>Jumlah klik</span><b id="stClicks">0</b></div>
+      <div class="stat"><span>Kali Naik Kelas</span><b id="stPres">0</b></div>
+    </section>
+
+    <section class="card">
+      <h2>Pencapaian</h2>
+      <div class="ach" id="ach"></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="card">
+      <div class="row">
+        <h2>Dagangan</h2>
+        <div class="qty" id="qty">
+          <button type="button" data-q="1" aria-pressed="true">x1</button>
+          <button type="button" data-q="10" aria-pressed="false">x10</button>
+          <button type="button" data-q="100" aria-pressed="false">x100</button>
+          <button type="button" data-q="max" aria-pressed="false">Maks</button>
+        </div>
+      </div>
+      <div id="gens"></div>
+    </section>
+
+    <section class="card">
+      <h2>Peningkatan</h2>
+      <div id="ups"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span>Spasi = jual · Esc = layar darurat · Bel 🔔 yang muncul bawa rezeki</span>
+  <button type="button" id="bossBtn">👀 Layar darurat</button>
+  <button type="button" id="reset">Reset game</button>
+</footer>
+
+<div id="toast"></div>
+
+<div id="boss" hidden>
+  <div class="bar"><b>Dokumen</b><span>Berkas</span><span>Edit</span><span>Tampilan</span><span>Sisipkan</span><span>Format</span></div>
+  <div class="page">
+    <h1>Rangkuman Ekonomi: Bab 3</h1>
+    <p class="sub">Permintaan, Penawaran, dan Harga Keseimbangan</p>
+    <h3>A. Pengertian Permintaan</h3>
+    <p>Permintaan adalah jumlah barang atau jasa yang bersedia dibeli konsumen pada berbagai tingkat harga dalam waktu tertentu. Hukum permintaan menyatakan bahwa apabila harga suatu barang naik, jumlah yang diminta akan turun, dengan anggapan faktor lain tetap (ceteris paribus).</p>
+    <h3>B. Faktor yang Memengaruhi Permintaan</h3>
+    <p>1. Harga barang itu sendiri<br>2. Harga barang lain (barang substitusi dan komplementer)<br>3. Pendapatan konsumen<br>4. Selera dan kebiasaan<br>5. Jumlah penduduk<br>6. Perkiraan harga di masa depan</p>
+    <h3>C. Pengertian Penawaran</h3>
+    <p>Penawaran adalah jumlah barang atau jasa yang bersedia dijual produsen pada berbagai tingkat harga. Hukum penawaran menyatakan bahwa semakin tinggi harga, semakin banyak jumlah barang yang ditawarkan.</p>
+    <h3>D. Harga Keseimbangan</h3>
+    <p>Harga keseimbangan (ekuilibrium) terjadi ketika jumlah barang yang diminta sama dengan jumlah barang yang ditawarkan. Titik pertemuan kurva permintaan dan kurva penawaran disebut titik keseimbangan pasar.</p>
+    <h3>E. Catatan</h3>
+    <p>Contoh soal: jika pada harga Rp 4.000 jumlah permintaan 120 unit dan jumlah penawaran 80 unit, maka terjadi kelebihan permintaan sebanyak 40 unit sehingga harga cenderung naik menuju titik keseimbangan.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const SAVE_KEY = 'kantin-sekolah-v1';
+const GROWTH = 1.15;
+const BASE_CLICK = 500;
+const REP_BONUS = 0.05;
+const OFFLINE_CAP = 8 * 3600;
+const OFFLINE_RATE = 0.5;
+const FRENZY_MULT = 7;
+const FRENZY_SECS = 20;
+
+const $ = id => document.getElementById(id);
+
+/* ---------- Data ---------- */
+const GENS = [
+  {id:'gorengan', em:'🍤', name:'Gorengan Bu Tini',     ds:'Bakwan hangat, laris tiap istirahat.', cost:5e3,  cps:30},
+  {id:'esteh',    em:'🧋', name:'Es Teh Manis',          ds:'Dingin, manis, murah.',                cost:3e4,  cps:200},
+  {id:'nasgor',   em:'🍛', name:'Nasi Goreng Spesial',   ds:'Porsi kuli, harga siswa.',             cost:2e5,  cps:1200},
+  {id:'mie',      em:'🍜', name:'Mie Ayam Pak Joko',     ds:'Antreannya sampai lapangan.',          cost:1.5e6,cps:8000},
+  {id:'bakso',    em:'🍲', name:'Bakso Urat',            ds:'Kuahnya bikin lupa PR.',               cost:1.2e7,cps:50000},
+  {id:'cabang',   em:'🏪', name:'Kantin Cabang',         ds:'Sekolah sebelah ikut kebagian.',       cost:1e8,  cps:3e5},
+  {id:'seblak',   em:'🌶️', name:'Ekspor Seblak',         ds:'Pedasnya mendunia.',                   cost:1e9,  cps:2e6},
+];
+const GEN = Object.fromEntries(GENS.map(g => [g.id, g]));
+
+const UPS = [];
+[[2e3,'Sendok Gorengan Baru'],[2e4,'Wajan Anti Lengket'],[2e5,'Gerobak Roda Tiga'],
+ [2e6,'Tangan Kanan Cekatan'],[2e7,'Kasir Digital']].forEach(([cost,name],i) =>
+  UPS.push({id:'click'+i, name, ds:'Pendapatan per klik x2', cost, type:'click', mult:2}));
+UPS.push({id:'tap', name:'Jurus Rayuan Maut', ds:'Tiap klik juga memberi 3% pendapatan/detik', cost:5e5, type:'tap', pct:0.03});
+UPS.push({id:'gl0', name:'Spanduk "Murah Meriah"',    ds:'Semua pendapatan +25%', cost:2.5e5, type:'global', mult:1.25});
+UPS.push({id:'gl1', name:'Kartu Member Siswa',        ds:'Semua pendapatan +50%', cost:5e6,   type:'global', mult:1.5});
+UPS.push({id:'gl2', name:'Iklan di Mading',           ds:'Semua pendapatan x2',   cost:1e8,   type:'global', mult:2});
+UPS.push({id:'gl3', name:'Sponsor Minuman Bersoda',   ds:'Semua pendapatan x2',   cost:5e9,   type:'global', mult:2});
+GENS.forEach(g => [[10,50,'Resep Rahasia'],[25,500,'Bahan Premium'],[50,5000,'Staf Tambahan']].forEach(([need,m,label],t) =>
+  UPS.push({id:`${g.id}_${t}`, name:`${label}: ${g.name}`, ds:`${g.name} menghasilkan x2 (punya ${need}+)`,
+            cost:g.cost*m, type:'gen', gen:g.id, need, mult:2})));
+UPS.sort((a,b) => a.cost - b.cost);
+
+const ACH = [
+  {id:'a1', name:'Pembeli Pertama',  test:() => S.clicks >= 1},
+  {id:'a2', name:'Jari Gesit (500 klik)', test:() => S.clicks >= 500},
+  {id:'a3', name:'Juragan Receh (Rp 100 rb)', test:() => S.lifetime >= 1e5},
+  {id:'a4', name:'Juragan Kantin (Rp 10 jt)', test:() => S.lifetime >= 1e7},
+  {id:'a5', name:'Sultan Sekolah (Rp 1 M)',   test:() => S.lifetime >= 1e9},
+  {id:'a6', name:'Triliuner (Rp 1 T)',        test:() => S.lifetime >= 1e12},
+  {id:'a7', name:'Menu Lengkap',     test:() => GENS.every(g => owned(g.id) >= 1)},
+  {id:'a8', name:'Rejeki Nomplok (5 bel)', test:() => S.bells >= 5},
+  {id:'a9', name:'Naik Kelas',       test:() => S.prestiges >= 1},
+];
+
+/* ---------- State ---------- */
+const fresh = () => ({money:0, total:0, lifetime:0, clicks:0, gens:{}, ups:{}, rep:0,
+                      prestiges:0, bells:0, ach:{}, frenzyUntil:0, lastSave:Date.now()});
+let S = fresh();
+let qty = 1;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) S = Object.assign(fresh(), JSON.parse(raw));
+  } catch (e) { /* tanpa penyimpanan, tetap bisa main */ }
+}
+function save() {
+  S.lastSave = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+}
+
+/* ---------- Format ---------- */
+const UNITS = [[1e15,'Q'],[1e12,'T'],[1e9,'M'],[1e6,'jt'],[1e3,'rb']];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1000) return (n < 100 && n % 1 !== 0) ? n.toFixed(1).replace('.', ',') : String(Math.floor(n));
+  for (const [v, s] of UNITS) {
+    if (n >= v) {
+      const x = n / v;
+      let str = x.toFixed(x >= 100 ? 0 : x >= 10 ? 1 : 2).replace('.', ',');
+      if (str.includes(',')) str = str.replace(/,?0+$/, '');
+      return str + ' ' + s;
+    }
+  }
+}
+const rp = n => 'Rp ' + fmt(Math.floor(n));
+
+/* ---------- Mekanik ---------- */
+const owned = id => S.gens[id] || 0;
+const hasUp = id => !!S.ups[id];
+
+function repMult() { return 1 + S.rep * REP_BONUS; }
+function globalMult() {
+  let m = repMult();
+  for (const u of UPS) if (u.type === 'global' && hasUp(u.id)) m *= u.mult;
+  if (S.frenzyUntil > Date.now()) m *= FRENZY_MULT;
+  return m;
+}
+function genMult(id) {
+  let m = 1;
+  for (const u of UPS) if (u.type === 'gen' && u.gen === id && hasUp(u.id)) m *= u.mult;
+  return m;
+}
+function cps() {
+  let sum = 0;
+  for (const g of GENS) sum += owned(g.id) * g.cps * genMult(g.id);
+  return sum * globalMult();
+}
+function clickVal() {
+  let mult = 1, tap = 0;
+  for (const u of UPS) {
+    if (!hasUp(u.id)) continue;
+    if (u.type === 'click') mult *= u.mult;
+    if (u.type === 'tap') tap += u.pct;
+  }
+  return BASE_CLICK * mult * globalMult() + tap * cps();
+}
+
+function bulkCost(g, n) {
+  const c0 = g.cost * Math.pow(GROWTH, owned(g.id));
+  return Math.ceil(c0 * (Math.pow(GROWTH, n) - 1) / (GROWTH - 1));
+}
+function maxBuy(g) {
+  const c0 = g.cost * Math.pow(GROWTH, owned(g.id));
+  if (S.money < c0) return 0;
+  let n = Math.floor(Math.log(S.money * (GROWTH - 1) / c0 + 1) / Math.log(GROWTH));
+  while (n > 0 && bulkCost(g, n) > S.money) n--;
+  return n;
+}
+const buyAmount = g => qty === 'max' ? Math.max(1, maxBuy(g)) : qty;
+
+function earn(x) { S.money += x; S.total += x; S.lifetime += x; }
+
+function buyGen(id) {
+  const g = GEN[id], n = buyAmount(g), c = bulkCost(g, n);
+  if (S.money < c) return;
+  S.money -= c;
+  S.gens[id] = owned(id) + n;
+  renderUps(true);
+}
+function buyUp(id) {
+  const u = UPS.find(x => x.id === id);
+  if (!u || hasUp(id) || S.money < u.cost) return;
+  S.money -= u.cost;
+  S.ups[id] = 1;
+  renderUps(true);
+}
+
+function prestigeGain() { return Math.floor(Math.cbrt(S.total / 1e8)); }
+function doPrestige() {
+  const gain = prestigeGain();
+  if (gain < 1) return;
+  if (!confirm(`Naik Kelas? Uang, dagangan, dan peningkatan direset. Kamu dapat +${gain} Reputasi (+${gain * 5}% pendapatan permanen).`)) return;
+  S.rep += gain; S.prestiges++;
+  S.money = 0; S.total = 0; S.gens = {}; S.ups = {}; S.frenzyUntil = 0;
+  toast(`🎓 Naik kelas! +${gain} Reputasi`);
+  renderUps(true); save();
+}
+
+/* ---------- UI: dagangan ---------- */
+const gensEl = $('gens'), upsEl = $('ups');
+const rows = {};
+GENS.forEach(g => {
+  const el = document.createElement('div');
+  el.className = 'gen'; el.hidden = true;
+  el.innerHTML = `<div class="em">${g.em}</div>
+    <div><div class="nm">${g.name} <span class="own"></span></div>
+    <div class="ds">${g.ds}</div><div class="own cp"></div></div>
+    <button type="button" class="buy"></button>`;
+  el.querySelector('.buy').addEventListener('click', () => buyGen(g.id));
+  gensEl.appendChild(el);
+  rows[g.id] = {el, own:el.querySelector('.nm .own'), cp:el.querySelector('.cp'), btn:el.querySelector('.buy')};
+});
+
+let upKey = '';
+function visibleUps() {
+  return UPS.filter(u => {
+    if (hasUp(u.id)) return false;
+    if (u.type === 'gen') return owned(u.gen) >= u.need;
+    return S.total >= u.cost * 0.3;
+  }).slice(0, 8);
+}
+function renderUps(force) {
+  const list = visibleUps();
+  const key = list.map(u => u.id).join(',');
+  if (!force && key === upKey) return;
+  upKey = key;
+  upsEl.innerHTML = '';
+  if (!list.length) {
+    upsEl.innerHTML = '<p class="empty">Belum ada peningkatan. Jualan terus!</p>';
+    return;
+  }
+  list.forEach(u => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'up'; b.dataset.id = u.id;
+    b.innerHTML = `<div class="nm"></div><div class="ds"></div><div class="pr"></div>`;
+    b.querySelector('.nm').textContent = u.name;
+    b.querySelector('.ds').textContent = u.ds;
+    b.querySelector('.pr').textContent = rp(u.cost);
+    b.addEventListener('click', () => buyUp(u.id));
+    upsEl.appendChild(b);
+  });
+}
+
+const achEl = $('ach');
+const achBadges = {};
+ACH.forEach(a => {
+  const s = document.createElement('span');
+  s.className = 'badge'; s.textContent = '???';
+  achEl.appendChild(s); achBadges[a.id] = s;
+});
+
+function toast(msg) {
+  const d = document.createElement('div');
+  d.textContent = msg;
+  $('toast').appendChild(d);
+  setTimeout(() => d.remove(), 3700);
+}
+
+function render() {
+  const rate = cps();
+  $('money').textContent = rp(S.money);
+  $('cps').textContent = fmt(rate) + ' / detik';
+  $('perClick').textContent = rp(clickVal()) + ' per klik';
+
+  let unlockedNext = false;
+  for (const g of GENS) {
+    const r = rows[g.id];
+    const show = owned(g.id) > 0 || S.total >= g.cost * 0.5 || !unlockedNext && S.total >= g.cost * 0.1;
+    r.el.hidden = !show;
+    if (!show) { unlockedNext = true; continue; }
+    const n = buyAmount(g);
+    const c = bulkCost(g, n);
+    r.own.textContent = '×' + owned(g.id);
+    r.cp.textContent = '+' + fmt(g.cps * genMult(g.id) * globalMult()) + ' / detik tiap unit';
+    r.btn.textContent = `Beli ×${n} · ${rp(c)}`;
+    r.btn.disabled = S.money < c;
+  }
+
+  renderUps(false);
+  upsEl.querySelectorAll('.up').forEach(b => {
+    const u = UPS.find(x => x.id === b.dataset.id);
+    b.disabled = S.money < u.cost;
+  });
+
+  const gain = prestigeGain();
+  $('rep').textContent = S.rep + (S.rep ? ` (+${S.rep * 5}%)` : '');
+  const pb = $('prestige');
+  pb.disabled = gain < 1;
+  pb.textContent = gain >= 1 ? `Naik Kelas (+${gain} Reputasi)` : `Naik Kelas (butuh total ${rp(1e8)})`;
+
+  $('stLife').textContent = rp(S.lifetime);
+  $('stClicks').textContent = fmt(S.clicks);
+  $('stPres').textContent = S.prestiges;
+
+  const left = (S.frenzyUntil - Date.now()) / 1000;
+  const fz = $('frenzy');
+  fz.hidden = left <= 0;
+  if (left > 0) fz.textContent = `🔥 Ramai! ×${FRENZY_MULT} · ${Math.ceil(left)} dtk`;
+}
+
+function checkAch() {
+  for (const a of ACH) {
+    if (S.ach[a.id]) continue;
+    if (a.test()) { S.ach[a.id] = 1; toast('🏆 ' + a.name); paintAch(a); }
+  }
+}
+function paintAch(a) {
+  const b = achBadges[a.id];
+  b.className = 'badge on'; b.textContent = a.name;
+}
+
+/* ---------- Klik ---------- */
+function floatText(x, y, text) {
+  const f = document.createElement('div');
+  f.className = 'float'; f.textContent = text;
+  f.style.left = x + 'px'; f.style.top = y + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 800);
+}
+function sell(e) {
+  const v = clickVal();
+  earn(v); S.clicks++;
+  const r = $('tap').getBoundingClientRect();
+  const x = e && e.clientX ? e.clientX : r.left + r.width / 2;
+  const y = e && e.clientY ? e.clientY : r.top + r.height / 2;
+  floatText(x - 20 + (Math.random() * 30 - 15), y - 20, '+' + fmt(v));
+}
+$('tap').addEventListener('click', sell);
+
+/* ---------- Bel istirahat ---------- */
+let bellEl = null, nextBell = Date.now() + 60000 + Math.random() * 60000;
+function spawnBell() {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'bell'; b.textContent = '🔔'; b.title = 'Bel istirahat!';
+  b.style.left = (8 + Math.random() * 78) + 'vw';
+  b.style.top = (18 + Math.random() * 62) + 'vh';
+  b.addEventListener('click', () => {
+    S.bells++;
+    if (Math.random() < 0.5) {
+      const bonus = Math.max(cps() * 120, clickVal() * 30);
+      earn(bonus);
+      toast(`🔔 Bel istirahat! Pembeli rebutan: +${rp(bonus)}`);
+    } else {
+      S.frenzyUntil = Date.now() + FRENZY_SECS * 1000;
+      toast(`🔔 Jam istirahat ramai! Pendapatan ×${FRENZY_MULT} selama ${FRENZY_SECS} detik`);
+    }
+    b.remove(); bellEl = null;
+  });
+  document.body.appendChild(b);
+  bellEl = b;
+  setTimeout(() => { if (bellEl === b) { b.remove(); bellEl = null; } }, 12000);
+}
+
+/* ---------- Layar darurat ---------- */
+let bossOn = false;
+function toggleBoss() {
+  bossOn = !bossOn;
+  $('boss').hidden = !bossOn;
+  document.title = bossOn ? 'Rangkuman Ekonomi Bab 3' : 'Kantin Sekolah';
+}
+$('bossBtn').addEventListener('click', toggleBoss);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { toggleBoss(); return; }
+  if (e.code === 'Space' && e.target === document.body && !bossOn) {
+    e.preventDefault();
+    if (!e.repeat) sell();
+  }
+});
+
+/* ---------- Kontrol lain ---------- */
+$('qty').addEventListener('click', e => {
+  const b = e.target.closest('button[data-q]');
+  if (!b) return;
+  qty = b.dataset.q === 'max' ? 'max' : Number(b.dataset.q);
+  $('qty').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+});
+$('prestige').addEventListener('click', doPrestige);
+$('reset').addEventListener('click', () => {
+  if (!confirm('Hapus semua progres dan mulai dari nol?')) return;
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  S = fresh();
+  ACH.forEach(a => { achBadges[a.id].className = 'badge'; achBadges[a.id].textContent = '???'; });
+  renderUps(true);
+});
+
+/* ---------- Loop ---------- */
+let last = Date.now(), saveAt = 0;
+setInterval(() => {
+  const now = Date.now();
+  const dt = Math.max(0, (now - last) / 1000);
+  last = now;
+  earn(cps() * dt);
+  if (!bellEl && now >= nextBell) {
+    spawnBell();
+    nextBell = now + 60000 + Math.random() * 90000;
+  }
+  checkAch();
+  render();
+  if (now - saveAt > 5000) { save(); saveAt = now; }
+}, 100);
+
+window.addEventListener('beforeunload', save);
+
+/* ---------- Mulai ---------- */
+load();
+const away = Math.min((Date.now() - S.lastSave) / 1000, OFFLINE_CAP);
+if (away > 30 && cps() > 0) {
+  const gain = cps() * away * OFFLINE_RATE;
+  earn(gain);
+  toast(`🏪 Kantin tetap buka saat kamu pergi: +${rp(gain)}`);
+}
+ACH.forEach(a => { if (S.ach[a.id]) paintAch(a); });
+renderUps(true);
+render();
+})();
+</script>
+</body>
+</html>

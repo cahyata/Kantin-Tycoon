@@ -1,0 +1,4 @@
+kantin-tycoon.sqlite
+kantin-tycoon.sqlite.bak
+*.sqlite-journal
+__pycache__/
