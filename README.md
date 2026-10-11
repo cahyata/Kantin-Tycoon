@@ -4,6 +4,10 @@ Game idle/manajemen kantin sekolah yang berjalan di browser. Dibuat untuk mengis
 
 Satu file HTML (JavaScript murni, tanpa framework), dengan server Python opsional untuk akun dan simpanan di file SQLite.
 
+**Coba online:** https://cahyata.pythonanywhere.com/
+
+> Ini demo di hosting gratis. Datanya bisa direset sewaktu-waktu, jadi jangan menyimpan progres penting di sana. Untuk simpanan sendiri, jalankan lokal atau ekspor kode simpanan di tab Pengaturan.
+
 ## Menjalankan
 
 ### Cara cepat (tanpa akun)
