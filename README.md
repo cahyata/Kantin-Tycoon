@@ -71,7 +71,6 @@ kantin-tycoon.html   # game lengkap (UI, simulasi, penyimpanan)
 server.py            # server lokal + aplikasi WSGI: akun + simpanan SQLite
 wsgi.py              # titik masuk untuk hosting publik
 jalankan.bat         # peluncur Windows
-kantin-sekolah.html  # versi pertama yang lebih sederhana
 ```
 
 ## Catatan
