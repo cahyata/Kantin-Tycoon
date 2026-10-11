@@ -50,6 +50,7 @@ Inti permainan:
 | Mode | Lokasi data | Akun |
 |---|---|---|
 | `jalankan.bat` / `server.py` | `kantin-tycoon.sqlite` | ya |
+| Online (PythonAnywhere) | file SQLite di server (`KT_DB`) | ya |
 | Klik dua kali file HTML | IndexedDB browser | tidak |
 
 - Slot simpanan ganda, cadangan otomatis tiap 5 menit (maks. 10 per slot).
@@ -71,9 +72,10 @@ kantin-tycoon.html   # game lengkap (UI, simulasi, penyimpanan)
 server.py            # server lokal + aplikasi WSGI: akun + simpanan SQLite
 wsgi.py              # titik masuk untuk hosting publik
 jalankan.bat         # peluncur Windows
+docs/                # panduan pasang online dan laporan keseimbangan ekonomi
 ```
 
 ## Catatan
 
 - Tampilan memakai font Inter dari Google Fonts (mirip Helvetica); tanpa internet jatuh ke Helvetica/Arial.
-- Keseimbangan angka game (harga, kecepatan, bonus) belum diuji untuk permainan jangka sangat panjang.
+- Keseimbangan ekonomi jangka panjang sudah disimulasikan; hasil dan angka yang diubah ada di [docs/laporan-keseimbangan.md](docs/laporan-keseimbangan.md). Simulasi tidak mencakup klik manual.
