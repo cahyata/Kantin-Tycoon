@@ -22,6 +22,9 @@ Atau klik dua kali `jalankan.bat` di Windows. Browser terbuka di `http://127.0.0
 - Daftar akun pertama kali, atau pilih "Main tanpa akun".
 - Opsi: `python server.py --port 9000 --no-browser`
 
+### Online (gratis)
+Lihat [docs/pasang-pythonanywhere.md](docs/pasang-pythonanywhere.md) untuk memasangnya di PythonAnywhere.
+
 ## Cara bermain
 
 | Tombol | Fungsi |
@@ -56,7 +59,7 @@ Inti permainan:
 
 ## Keamanan
 
-- Server hanya menerima koneksi dari `127.0.0.1`.
+- Secara bawaan server hanya menerima koneksi dari `127.0.0.1`. Di hosting publik, host diizinkan lewat `KT_HOSTS`, cookie diberi flag `Secure`, dan login/pendaftaran dibatasi per IP.
 - Kata sandi di-hash dengan PBKDF2-SHA256 (salt acak); sesi lewat cookie `HttpOnly` + `SameSite=Strict`.
 - Akun lain tidak bisa melihat atau mengubah slotmu.
 - File `*.sqlite` ada di `.gitignore`. Jangan di-commit, karena berisi akun dan simpanan.
@@ -65,7 +68,8 @@ Inti permainan:
 
 ```
 kantin-tycoon.html   # game lengkap (UI, simulasi, penyimpanan)
-server.py            # server lokal: akun + simpanan SQLite
+server.py            # server lokal + aplikasi WSGI: akun + simpanan SQLite
+wsgi.py              # titik masuk untuk hosting publik
 jalankan.bat         # peluncur Windows
 kantin-sekolah.html  # versi pertama yang lebih sederhana
 ```
