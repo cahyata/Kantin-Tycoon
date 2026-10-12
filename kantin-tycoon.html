@@ -75,7 +75,9 @@ small{color:var(--muted)}
 .event .ch button:hover{background:var(--ink);color:var(--bg)}
 .event .cd{height:3px;background:var(--line);margin-top:12px}
 .event .cd i{display:block;height:100%;background:var(--accent)}
-/* Misi harian */
+/* Misi harian: di samping adegan kantin supaya tidak perlu scroll */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
 #questCard h2{margin-bottom:6px}
 .qrow{display:grid;grid-template-columns:26px 1fr auto;gap:3px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
 #questCard h2 + .qrow{border-top:0}
@@ -229,6 +231,7 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
 </header>
 
 <div class="wrap">
+  <div class="hero">
   <section class="card scene">
     <canvas id="scene"></canvas>
     <div class="scene-foot">
@@ -240,10 +243,11 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
       </div>
     </div>
   </section>
+  <section class="card" id="questCard"></section>
+  </div>
 
   <div class="buffs" id="buffs"></div>
   <div id="eventBox"></div>
-  <section class="card" id="questCard"></section>
 
   <nav class="tabs" id="tabs">
     <button type="button" data-t="menu" aria-selected="true">🍽️ Menu &amp; Dapur</button>
@@ -1124,7 +1128,7 @@ const EVENTS = [
           else { addBuff({id:'hike', label:'📈 Bahan +35%', cost:1.35, until:S.day + 1}); toast('Uang kurang untuk kontrak'); } }},
         {label:'Terima kenaikan', run:() => addBuff({id:'hike', label:'📈 Bahan +35%', cost:1.35, until:S.day + 1})}]};
   }},
-  {id:'rival', w:12, cond:() => S.day >= 3, make:() => {
+  {id:'rival', w:30, cond:() => S.day >= 3, make:() => {
     const win = clamp((S.sat - 30) / 70, 0.15, 0.85);   // makin puas pelanggan, makin besar peluang menang
     return {em:'🏪', title:'Kantin sebelah banting harga!', dflt:0,
       text:'Kantin Bu Tini buka promo besar-besaran dan mulai menyedot pengunjungmu.',
