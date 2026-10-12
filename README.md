@@ -45,7 +45,9 @@ Inti permainan:
 - **6 menu** dengan harga yang kamu atur sendiri. Harga naik berarti untung per porsi naik, tapi minat pembeli turun.
 - **Stok, karyawan, dan level dapur** menentukan seberapa banyak pelanggan yang terlayani.
 - **Kepuasan** memengaruhi jumlah pengunjung. Antrean panjang dan stok habis membuat pelanggan kabur.
-- **Event acak:** hujan, sidak guru, pesanan katering, video viral, harga bahan naik, dan lainnya.
+- **Event acak:** hujan, sidak guru, pesanan katering, video viral, harga bahan naik, kantin rival, dan lainnya.
+- **Tantangan harian:** 3 misi acak tiap hari (layani sekian pelanggan, capai omzet, kepuasan tinggi, dst.) dengan hadiah uang dan bonus pengunjung bila semuanya beres. Ada juga **target mingguan** omzet 7 hari.
+- **Adu rasa:** saat kantin rival banting harga, kamu bisa menantang adu rasa. Peluang menang mengikuti kepuasan pelangganmu.
 - **Cabang** dan **Naik Kelas** (prestise dengan toko Reputasi) untuk progres jangka panjang.
 - **Laporan** per menu, per hari, dan per jam.
 
