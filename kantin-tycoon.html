@@ -195,6 +195,22 @@ small{color:var(--muted)}
 #acctBody summary{cursor:pointer;font-weight:600;font-size:13.5px;padding:4px 0}
 #acctBody .setrow{margin-top:10px}
 
+/* Tur panduan pemain baru */
+#tour{position:fixed;inset:0;z-index:150}
+#tour[hidden]{display:none}
+#tour.dim{background:rgba(0,0,0,.6)}
+#tourHi{position:fixed;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.62),0 0 0 3px var(--accent);pointer-events:none;transition:all .2s}
+#tour.dim #tourHi{display:none}
+#tourTip{position:fixed;width:min(350px,calc(100vw - 24px));background:var(--card);color:var(--ink);border:1px solid var(--ink);border-top:6px solid var(--accent);border-radius:6px;padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+#tourTip .tt{font-size:17px;font-weight:700;letter-spacing:-.02em}
+#tourTip .tx{margin:6px 0 12px;color:var(--muted);font-size:14px}
+#tourTip .tn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+#tourTip .tb{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#tourTip .tb button{border:1px solid var(--ink);background:transparent;border-radius:4px;padding:7px 12px;font-weight:600;font-size:13.5px}
+#tourTip .tb button:hover{background:var(--ink);color:var(--bg)}
+#tourTip .tb .pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#tourTip .tb .pri:hover{background:var(--accent);filter:brightness(1.1);color:var(--accent-ink)}
+#tourTip .tb .skip{margin-left:auto;border-color:transparent;color:var(--muted);text-decoration:underline}
 footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:12.5px}
 
 .float{position:fixed;pointer-events:none;font-weight:700;color:var(--accent);z-index:20;animation:up .8s ease-out forwards}
@@ -303,6 +319,9 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
   </section>
 
   <section class="panel" id="p-set" hidden>
+    <div class="card"><h2>🧭 Panduan pemain baru</h2>
+      <p class="empty" style="margin-bottom:10px">Tur singkat atau lengkap yang menyorot tombol-tombol utama satu per satu.</p>
+      <div class="setrow"><button type="button" id="tourBtn">Buka panduan</button></div></div>
     <div class="card"><h2>👤 Akun</h2><div id="acctBody"></div></div>
     <div class="card">
       <h2>💾 Database Simpanan <small id="dbState"></small></h2>
@@ -325,9 +344,15 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
 </div>
 
 <footer>Spasi = layani · P = jeda · 1 2 3 4 = kecepatan ×1/×2/×5/×10 (+ / − = naik/turun) · Esc = layar darurat · Kantin tetap jalan 8 jam walau tab ditutup.
-  <button type="button" id="bossBtn" class="qbtn" style="margin-left:8px">👀 Layar darurat</button></footer>
+  <button type="button" id="bossBtn" class="qbtn" style="margin-left:8px">👀 Layar darurat</button>
+  <button type="button" id="tourBtn2" class="qbtn" style="margin-left:4px">🧭 Tur panduan</button></footer>
 
 <div id="toast"></div>
+
+<div id="tour" hidden>
+  <div id="tourHi"></div>
+  <div id="tourTip" role="dialog" aria-live="polite"><div class="tn"></div><div class="tt"></div><p class="tx"></p><div class="tb"></div></div>
+</div>
 
 <div id="auth" hidden>
   <form class="authbox" id="authForm">
@@ -1724,6 +1749,103 @@ function draw(now) {
 }
 window.addEventListener('resize', () => { resizeCv(); chartDirty = true; });
 
+/* ================= Tur panduan ================= */
+const TOUR_KEY = 'kantin-tour-v1';
+const TOUR_STEPS = [
+  {full:false, el:() => $('serve'), title:'Layani pelanggan',
+   text:'Klik tombol ini (atau tekan Spasi) untuk melayani antrean sendiri. Makin banyak peningkatan, makin banyak pelanggan sekali klik.'},
+  {full:true,  el:() => document.querySelector('.meters'), title:'Tiga meteran penting',
+   text:'Kepuasan memengaruhi jumlah pengunjung. Pengunjung adalah laju pelanggan datang. Antrean yang kepanjangan atau stok habis membuat pelanggan kabur.'},
+  {full:false, el:() => $('speed'), title:'Jeda dan kecepatan',
+   text:'Tombol Jeda (P) menghentikan waktu. ×1 sampai ×10 mempercepat hari sekolah (tombol 1-4). Kantin tetap jalan sampai 8 jam saat tab ditutup.'},
+  {full:false, el:() => $('stations').firstElementChild, title:'Menu & dapur',
+   text:'Atur harga dengan slider (harga naik = untung naik, minat pembeli turun), isi stok sebelum habis, lalu tambah karyawan dan naikkan level dapur.'},
+  {full:false, el:() => $('questCard'), title:'Tantangan harian',
+   text:'Tiga misi acak tiap hari plus target mingguan. Selesaikan untuk hadiah uang dan bonus pengunjung.'},
+  {full:true,  el:() => document.querySelector('#tabs [data-t="up"]'), title:'Peningkatan & cabang',
+   text:'Beli peningkatan untuk putaran ini (kulkas, kasir, iklan) dan buka cabang untuk melipatgandakan pengunjung.'},
+  {full:true,  el:() => document.querySelector('#tabs [data-t="grad"]'), title:'Naik Kelas',
+   text:'Setelah omzet cukup besar, reset progres demi Reputasi. Tiap Reputasi memberi bonus pengunjung permanen dan bisa ditukar perk.'},
+  {full:true,  el:() => document.querySelector('#tabs [data-t="rep"]'), title:'Laporan',
+   text:'Lihat laba, menu terlaris, jam ramai, dan pencapaianmu. Berguna untuk menentukan harga yang pas.'},
+  {full:true,  el:() => document.querySelector('#tabs [data-t="set"]'), title:'Pengaturan & simpanan',
+   text:'Kelola akun, slot simpanan, cadangan otomatis, dan ekspor/impor kode simpanan. Tur ini juga bisa dibuka lagi dari sini.'},
+  {full:true,  el:() => $('bossBtn'), title:'Layar darurat',
+   text:'Tekan Esc atau tombol ini kalau ada yang lewat. Layar berubah jadi dokumen pelajaran.'},
+];
+let tourOn = false, tourList = [], tourI = 0;
+const tourSeen = () => { try { return localStorage.getItem(TOUR_KEY) === '1'; } catch (e) { return false; } };
+const tourMark = () => { try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {} };
+const tourDim = () => $('tour').classList.contains('dim');
+
+function tourBtn(label, fn, cls) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = label; if (cls) b.className = cls;
+  b.addEventListener('click', fn);
+  return b;
+}
+function tourEnd() {
+  tourOn = false; tourMark();
+  $('tour').hidden = true; $('tour').classList.remove('dim');
+}
+function tourPlace(tip, rect) {
+  const w = tip.offsetWidth, h = tip.offsetHeight, vw = innerWidth, vh = innerHeight;
+  let x, y;
+  if (!rect) { x = (vw - w) / 2; y = (vh - h) / 2; }
+  else {
+    x = clamp(rect.left + rect.width / 2 - w / 2, 12, Math.max(12, vw - w - 12));
+    if (rect.bottom + 14 + h <= vh - 8) y = rect.bottom + 14;
+    else if (rect.top - 14 - h >= 8) y = rect.top - 14 - h;
+    else y = clamp(vh - h - 12, 8, vh);   // elemen besar: taruh di bawah layar
+  }
+  tip.style.left = Math.round(x) + 'px'; tip.style.top = Math.round(y) + 'px';
+}
+function tourShow() {
+  const step = tourList[tourI], tip = $('tourTip'), hi = $('tourHi');
+  const el = step.el();
+  if (!el) { if (tourI < tourList.length - 1) { tourI++; tourShow(); } else tourEnd(); return; }
+  $('tour').classList.remove('dim');
+  el.scrollIntoView({block:'nearest'});
+  const r = el.getBoundingClientRect(), pad = 6;
+  Object.assign(hi.style, {left:(r.left - pad) + 'px', top:(r.top - pad) + 'px',
+                           width:(r.width + pad * 2) + 'px', height:(r.height + pad * 2) + 'px'});
+  tip.querySelector('.tn').textContent = 'Langkah ' + (tourI + 1) + ' dari ' + tourList.length;
+  tip.querySelector('.tt').textContent = step.title;
+  tip.querySelector('.tx').textContent = step.text;
+  const tb = tip.querySelector('.tb');
+  tb.innerHTML = '';
+  const last = tourI === tourList.length - 1;
+  if (tourI > 0) tb.appendChild(tourBtn('Kembali', () => { tourI--; tourShow(); }));
+  tb.appendChild(tourBtn(last ? 'Selesai' : 'Lanjut', () => { if (last) tourEnd(); else { tourI++; tourShow(); } }, 'pri'));
+  if (!last) tb.appendChild(tourBtn('Lewati tur', tourEnd, 'skip'));
+  tourPlace(tip, r);
+}
+function tourStart(full) {
+  tourList = TOUR_STEPS.filter(s => full || !s.full);
+  tourI = 0; tourOn = true; tourMark();
+  $('tour').hidden = false;
+  tourShow();
+}
+function tourWelcome() {
+  tourOn = true;
+  const tip = $('tourTip'), tb = tip.querySelector('.tb');
+  $('tour').hidden = false; $('tour').classList.add('dim');
+  tip.querySelector('.tn').textContent = 'Pemain baru?';
+  tip.querySelector('.tt').textContent = '👋 Selamat datang di Kantin Tycoon!';
+  tip.querySelector('.tx').textContent = 'Mau diantar keliling tombol-tombolnya dulu? Kamu bisa membukanya lagi kapan saja dari tab Pengaturan.';
+  tb.innerHTML = '';
+  tb.appendChild(tourBtn('Tur singkat (' + TOUR_STEPS.filter(s => !s.full).length + ' langkah)', () => tourStart(false), 'pri'));
+  tb.appendChild(tourBtn('Tur lengkap (' + TOUR_STEPS.length + ' langkah)', () => tourStart(true)));
+  tb.appendChild(tourBtn('Lewati', tourEnd, 'skip'));
+  tourPlace(tip, null);
+}
+$('tourBtn').addEventListener('click', tourWelcome);
+$('tourBtn2').addEventListener('click', tourWelcome);
+window.addEventListener('resize', () => {
+  if (!tourOn || $('tour').hidden) return;
+  if (tourDim()) tourPlace($('tourTip'), null); else tourShow();
+});
+
 /* ================= Kontrol ================= */
 function togglePause() {
   S.paused = !S.paused;
@@ -1759,6 +1881,15 @@ function setSpeed(n, announce) {
   if (announce) toast(`⏩ Kecepatan ×${n}`);
 }
 document.addEventListener('keydown', e => {
+  if (tourOn) {   // selama tur: Esc menutup, tombol lain tidak boleh memicu game
+    if (e.key === 'Escape') tourEnd();
+    else if (!tourDim() && (e.key === 'Enter' || e.key === 'ArrowRight')) {
+      const b = $('tourTip').querySelector('.pri');
+      if (b) b.click();
+    } else if (!tourDim() && e.key === 'ArrowLeft' && tourI > 0) { tourI--; tourShow(); }
+    if (e.key !== 'Tab') e.preventDefault();
+    return;
+  }
   if (e.key === 'Escape') { toggleBoss(); return; }
   if (e.ctrlKey || e.altKey || e.metaKey || isTyping(e.target)) return;
   if (isSpace(e)) {
@@ -2119,6 +2250,7 @@ async function boot() {
   render();
   requestAnimationFrame(draw);
   startLoop();
+  if (!tourSeen() && S.life.rev < 1000 && S.day <= 1) tourWelcome();   // otomatis hanya untuk pemain baru
 }
 
 S = freshState(); M = mods(); dirty = false;
