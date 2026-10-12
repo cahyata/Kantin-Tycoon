@@ -73,11 +73,11 @@ small{color:var(--muted)}
 #serve:active{transform:translateY(1px)}
 #serve:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .meters{flex:1;min-width:220px;display:grid;gap:7px;font-size:12px}
-.meter{display:flex;align-items:center;gap:10px}
-.meter .lbl{width:84px;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
-.meter .track{flex:1;height:4px;background:var(--line);overflow:hidden}
+.meter{display:grid;grid-template-columns:112px minmax(60px,1fr) 88px;align-items:center;gap:10px;cursor:help}
+.meter .lbl{color:var(--muted);font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.meter .track{height:6px;background:var(--line);overflow:hidden;border-radius:3px}
 .meter .track i{display:block;height:100%;width:0;transition:width .3s,background .3s}
-.meter b{min-width:70px;text-align:right;font-weight:600}
+.meter b{text-align:right;font-weight:600;white-space:nowrap}
 
 /* Event & buff */
 /* Event melayang di bawah header (tidak perlu scroll, tidak tertutup), warna dibalik supaya menonjol */
@@ -227,7 +227,12 @@ small{color:var(--muted)}
 #tourTip .tb .pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 #tourTip .tb .pri:hover{background:var(--accent);filter:brightness(1.1);color:var(--accent-ink)}
 #tourTip .tb .skip{margin-left:auto;border-color:transparent;color:var(--muted);text-decoration:underline}
-footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:12.5px}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);font-size:12.5px;display:flex;flex-direction:column;gap:10px}
+footer .keys{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+footer .keys span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+footer kbd{font:600 11.5px var(--font);color:var(--ink);background:var(--card);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 7px}
+footer .fnote{margin:0}
+footer .fbtns{display:flex;gap:6px;flex-wrap:wrap}
 
 .float{position:fixed;pointer-events:none;font-weight:700;color:var(--accent);z-index:20;animation:up .8s ease-out forwards}
 @keyframes up{to{transform:translateY(-55px);opacity:0}}
@@ -275,9 +280,9 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
     <div class="scene-foot">
       <button id="serve" type="button">🙋 Layani!</button>
       <div class="meters">
-        <div class="meter"><span class="lbl">Kepuasan</span><span class="track"><i id="satBar"></i></span><b id="satTxt"></b></div>
-        <div class="meter"><span class="lbl">Pengunjung</span><span class="track"><i id="footBar" style="background:var(--accent)"></i></span><b id="footTxt"></b></div>
-        <div class="meter"><span class="lbl">Antrean</span><span class="track"><i id="queueBar" style="background:var(--gold)"></i></span><b id="queueTxt"></b></div>
+        <div class="meter" title="Seberapa puas pelanggan. Makin tinggi, makin banyak yang datang. Turun kalau harga mahal, antrean panjang, atau stok habis."><span class="lbl">Kepuasan</span><span class="track"><i id="satBar"></i></span><b id="satTxt"></b></div>
+        <div class="meter" title="Laju pelanggan yang datang ke kantinmu saat ini, dalam orang per detik. Dipengaruhi jam istirahat, kepuasan, cabang, dan peningkatan."><span class="lbl">Pengunjung</span><span class="track"><i id="footBar" style="background:var(--accent)"></i></span><b id="footTxt"></b></div>
+        <div class="meter" title="Jumlah pelanggan yang sedang mengantre. Kalau antrean penuh atau stok habis, pelanggan baru kabur."><span class="lbl">Antrean</span><span class="track"><i id="queueBar" style="background:var(--gold)"></i></span><b id="queueTxt"></b></div>
       </div>
     </div>
   </section>
@@ -360,9 +365,20 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
   </section>
 </div>
 
-<footer>Spasi = layani · P = jeda · 1 2 3 4 = kecepatan ×1/×2/×5/×10 (+ / − = naik/turun) · Esc = layar darurat · Kantin tetap jalan 8 jam walau tab ditutup.
-  <button type="button" id="bossBtn" class="qbtn" style="margin-left:8px">👀 Layar darurat</button>
-  <button type="button" id="tourBtn2" class="qbtn" style="margin-left:4px">🧭 Tur panduan</button></footer>
+<footer>
+  <div class="keys" aria-label="Pintasan keyboard">
+    <span><kbd>Spasi</kbd> layani pelanggan</span>
+    <span><kbd>P</kbd> jeda / lanjut</span>
+    <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> kecepatan ×1 / ×2 / ×5 / ×10</span>
+    <span><kbd>+</kbd><kbd>−</kbd> naik / turun kecepatan</span>
+    <span><kbd>Esc</kbd> layar darurat</span>
+  </div>
+  <p class="fnote">Kantin tetap buka sampai 8 jam walau tab ditutup.</p>
+  <div class="fbtns">
+    <button type="button" id="bossBtn" class="qbtn">👀 Layar darurat</button>
+    <button type="button" id="tourBtn2" class="qbtn">🧭 Tur panduan</button>
+  </div>
+</footer>
 
 <div id="toast"></div>
 
@@ -1614,7 +1630,7 @@ function render() {
   $('satTxt').textContent = `${face} ${Math.round(S.sat)}`;
   const lam = S.lam || 0;
   $('footBar').style.width = clamp(lam / (FOOT0 * 4) * 100, 0, 100) + '%';
-  $('footTxt').textContent = `${fmt(lam)}/dtk`;
+  $('footTxt').textContent = `${fmt(lam)} / dtk`;
   let qTot = 0, qCap = 0;
   for (const it of ITEMS) { const s = S.items[it.id]; if (s.on) { qTot += s.q; qCap += 6 + 5 * s.staff; } }
   $('queueBar').style.width = (qTot / qCap * 100) + '%';
