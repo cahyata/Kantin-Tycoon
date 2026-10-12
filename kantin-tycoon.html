@@ -47,6 +47,10 @@ small{color:var(--muted)}
 .money{margin-left:auto;text-align:right;line-height:1.1}
 .money b{font-size:30px;font-weight:700;letter-spacing:-.04em}
 .money small{display:block;margin-top:2px}
+.acct{display:flex;align-items:center;gap:8px;font-size:13px}
+.acct[hidden]{display:none}
+.acctname{display:flex;align-items:center;gap:4px;max-width:140px;white-space:nowrap}
+.acctname b{overflow:hidden;text-overflow:ellipsis}
 
 .wrap{max-width:1000px;margin:0 auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
@@ -228,6 +232,7 @@ footer{max-width:1000px;margin:0 auto;padding:0 16px 28px;color:var(--muted);fon
     <button type="button" data-s="10" aria-pressed="false" title="Tombol 4">×10</button>
   </div>
   <div class="money"><b id="money">Rp 0</b><small id="rate"></small></div>
+  <div class="acct" id="acctTop" hidden><span class="acctname">👤 <b id="acctName"></b></span><button type="button" id="logoutBtn" class="qbtn" title="Keluar dari akun (simpanan tetap aman)">Keluar</button></div>
 </header>
 
 <div class="wrap">
@@ -1997,6 +2002,15 @@ async function chooseStore() {
 function clearLocalSession() {
   try { localStorage.removeItem(MIRROR_KEY); } catch (e) {}
 }
+// Keluar: simpan dulu, akhiri sesi, lalu muat ulang ke layar masuk. Simpanan akun tidak dihapus.
+async function logout() {
+  try { await saveNow(); } catch (e) {}
+  switching = true;                     // hentikan simpan-otomatis agar salinan darurat tidak tertulis ulang
+  await authRequest('/logout');
+  clearLocalSession();
+  location.reload();
+}
+$('logoutBtn').addEventListener('click', logout);
 function renderAccount() {
   const host = $('acctBody');
   host.innerHTML = '';
@@ -2016,12 +2030,7 @@ function renderAccount() {
   if (account) {
     p.textContent = `Masuk sebagai ${account.name}. Slot dan cadangan milik akun ini tersimpan di file ${serverInfo.file} dan tidak terlihat oleh akun lain.`;
     host.appendChild(row);
-    mk('Keluar', async () => {
-      switching = true;                 // hentikan simpan-otomatis agar salinan darurat tidak tertulis ulang
-      await authRequest('/logout');
-      clearLocalSession();
-      location.reload();
-    });
+    mk('Keluar', logout);
 
     const pw = document.createElement('details');
     pw.innerHTML = '<summary>Ganti kata sandi</summary><div class="acctform">' +
@@ -2095,6 +2104,7 @@ async function boot() {
     data = (mirrorMine(mir) && mir.data) || readLocal(SAVE_KEY);
   }
   applyState(normalize(data || {}));
+  if (account) { $('acctName').textContent = account.name; $('acctTop').hidden = false; }
 
   buildStations(); buildPerks(); buildAch();
   resizeCv();
